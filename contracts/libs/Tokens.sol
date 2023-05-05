@@ -4,7 +4,7 @@ pragma solidity >=0.8.0 <0.9.0;
 library Tokens {
     bytes32 public constant MINT_TYPEHASH =
         keccak256(
-            "signature(address recipient,bytes32 ctype,bytes32 programHash,bytes32 digest,address verifier,address attester,uint64[] output,uint64 issuanceTimestamp,expirationTimestamp,bytes2 vcVersion,string sbtFigure)"
+            "signature(address recipient,bytes32 ctype,bytes32 programHash,bytes32 digest,address verifier,address attester,uint64[] output,uint64 issuanceTimestamp,expirationTimestamp,bytes2 vcVersion,string sbtLink)"
         );
     struct Token {
         address recipient;
@@ -17,7 +17,7 @@ library Tokens {
         uint64 issuanceTimestamp;
         uint64 expirationTimestamp; // todo: optional one? maybe revoked by some special registry
         bytes2 vcVersion;
-        string sbtFigure;
+        string sbtLink; 
     }
 
     struct TokenOnChain {
@@ -31,7 +31,7 @@ library Tokens {
         uint64 issuanceTimestamp;
         uint64 expirationTimestamp; //todo: optional one? maybe revoked by some special registry
         bytes2 vcVersion;
-        string sbtFigure;
+        string sbtLink;
     }
 
    // todo: function sbt mint to a contract 
@@ -51,7 +51,7 @@ library Tokens {
         tokenOnchain.issuanceTimestamp = token.issuanceTimestamp;
         tokenOnchain.expirationTimestamp = token.expirationTimestamp;
         tokenOnchain.vcVersion = token.vcVersion;
-        tokenOnchain.sbtFigure = token.sbtFigure;
+        tokenOnchain.sbtLink = token.sbtLink;
         tokenOnchain.mintTimestamp = time;
     }
 
@@ -78,7 +78,7 @@ library Tokens {
                 tokenDetail.issuanceTimestamp,
                 tokenDetail.expirationTimestamp,
                 tokenDetail.vcVersion,
-                tokenDetail.sbtFigure
+                tokenDetail.sbtLink
             )
         );
 
