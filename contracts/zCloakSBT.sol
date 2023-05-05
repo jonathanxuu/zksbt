@@ -340,10 +340,7 @@ STORAGE
      * todo : here, need to modify the EIP712 domain struct, etc.
      */
     function DOMAIN_SEPARATOR() public view virtual returns (bytes32) {
-        return
-            block.chainid == INITIAL_CHAIN_ID
-                ? INITIAL_DOMAIN_SEPARATOR
-                : computeDomainSeparator();
+        return computeDomainSeparator();
     }
 
     function computeDomainSeparator() internal view virtual returns (bytes32) {

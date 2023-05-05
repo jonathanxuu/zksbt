@@ -15,7 +15,7 @@ library Tokens {
         address attester;
         uint64[] output;
         uint64 issuanceTimestamp;
-        uint64 expirationTimestamp; // todo: optional one? maybe revoked by some special registry
+        uint64 expirationTimestamp;
         bytes2 vcVersion;
         string sbtLink; 
     }
@@ -29,7 +29,7 @@ library Tokens {
         uint64[] output;
         uint64 mintTimestamp;
         uint64 issuanceTimestamp;
-        uint64 expirationTimestamp; //todo: optional one? maybe revoked by some special registry
+        uint64 expirationTimestamp;
         bytes2 vcVersion;
         string sbtLink;
     }
@@ -63,7 +63,8 @@ library Tokens {
 
     function verifySignature(
         Token memory tokenDetail,
-        bytes memory signature
+        bytes memory signature,
+        bytes32 domain_separator
     ) public pure returns (bool) {
         bytes32 structHash = keccak256(
             abi.encode(
@@ -82,7 +83,15 @@ library Tokens {
             )
         );
 
-        if (_recover(structHash, signature) != tokenDetail.verifier) {
+        bytes32 messageHash = keccak256(
+            abi.encodePacked(
+                "\x19\x01",
+                domain_separator,
+                structHash
+            )
+        );
+
+        if (_recover(messageHash, signature) != tokenDetail.verifier) {
             return false;
         }
         return true;
