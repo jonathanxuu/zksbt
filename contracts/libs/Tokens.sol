@@ -1,10 +1,11 @@
 pragma solidity >=0.8.0 <0.9.0;
+import "hardhat/console.sol";
 
 //SPDX-License-Identifier: MIT
 library Tokens {
     bytes32 public constant MINT_TYPEHASH =
         keccak256(
-            "signature(address recipient,bytes32 ctype,bytes32 programHash,bytes32 digest,address verifier,address attester,uint64[] output,uint64 issuanceTimestamp,expirationTimestamp,bytes2 vcVersion,string sbtLink)"
+            "signature(address recipient,bytes32 ctype,bytes32 programHash,bytes32 digest,address verifier,address attester,uint64[] output,uint64 issuanceTimestamp,uint64 expirationTimestamp,bytes2 vcVersion,string sbtLink)"
         );
     struct Token {
         address recipient;
@@ -15,7 +16,7 @@ library Tokens {
         address attester;
         uint64[] output;
         uint64 issuanceTimestamp;
-        uint64 expirationTimestamp; // todo: optional one? maybe revoked by some special registry
+        uint64 expirationTimestamp;
         bytes2 vcVersion;
         string sbtLink; 
     }
@@ -29,7 +30,7 @@ library Tokens {
         uint64[] output;
         uint64 mintTimestamp;
         uint64 issuanceTimestamp;
-        uint64 expirationTimestamp; //todo: optional one? maybe revoked by some special registry
+        uint64 expirationTimestamp;
         bytes2 vcVersion;
         string sbtLink;
     }
@@ -63,7 +64,8 @@ library Tokens {
 
     function verifySignature(
         Token memory tokenDetail,
-        bytes memory signature
+        bytes memory signature,
+        bytes32 domain_separator
     ) public pure returns (bool) {
         bytes32 structHash = keccak256(
             abi.encode(
@@ -74,15 +76,23 @@ library Tokens {
                 tokenDetail.digest,
                 tokenDetail.verifier,
                 tokenDetail.attester,
-                tokenDetail.output,
+                keccak256(abi.encodePacked(tokenDetail.output)),
                 tokenDetail.issuanceTimestamp,
                 tokenDetail.expirationTimestamp,
                 tokenDetail.vcVersion,
-                tokenDetail.sbtLink
+                keccak256(bytes(tokenDetail.sbtLink))
             )
         );
 
-        if (_recover(structHash, signature) != tokenDetail.verifier) {
+        bytes32 messageHash = keccak256(
+            abi.encodePacked(
+                "\x19\x01",
+                domain_separator,
+                structHash
+            )
+        );
+    
+        if (_recover(messageHash, signature) != tokenDetail.verifier) {
             return false;
         }
         return true;
