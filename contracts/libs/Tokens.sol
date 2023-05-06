@@ -1,10 +1,11 @@
 pragma solidity >=0.8.0 <0.9.0;
+import "hardhat/console.sol";
 
 //SPDX-License-Identifier: MIT
 library Tokens {
     bytes32 public constant MINT_TYPEHASH =
         keccak256(
-            "signature(address recipient,bytes32 ctype,bytes32 programHash,bytes32 digest,address verifier,address attester,uint64[] output,uint64 issuanceTimestamp,expirationTimestamp,bytes2 vcVersion,string sbtLink)"
+            "signature(address recipient,bytes32 ctype,bytes32 programHash,bytes32 digest,address verifier,address attester,uint64[] output,uint64 issuanceTimestamp,uint64 expirationTimestamp,bytes2 vcVersion,string sbtLink)"
         );
     struct Token {
         address recipient;
@@ -75,11 +76,11 @@ library Tokens {
                 tokenDetail.digest,
                 tokenDetail.verifier,
                 tokenDetail.attester,
-                tokenDetail.output,
+                keccak256(abi.encodePacked(tokenDetail.output)),
                 tokenDetail.issuanceTimestamp,
                 tokenDetail.expirationTimestamp,
                 tokenDetail.vcVersion,
-                tokenDetail.sbtLink
+                keccak256(bytes(tokenDetail.sbtLink))
             )
         );
 
@@ -90,7 +91,7 @@ library Tokens {
                 structHash
             )
         );
-
+    
         if (_recover(messageHash, signature) != tokenDetail.verifier) {
             return false;
         }

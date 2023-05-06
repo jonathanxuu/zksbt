@@ -21,6 +21,7 @@ error BindingAlreadyOccupied();
 error VerifierNotInWhitelist();
 error AlreadySetKey();
 error NotSetKey();
+error AlreadyExpired();
 
 contract zCloakSBT is ERC721Enumerable, Ownable, ReentrancyGuard {
     using Counters for Counters.Counter;
@@ -129,6 +130,10 @@ STORAGE
     function mint(Tokens.Token memory tokenInfo, bytes memory verifierSignature) public payable nonReentrant {
         if (mintOpen == false) revert MintDisabled();
 
+        if (tokenInfo.expirationTimestamp != 0 && tokenInfo.expirationTimestamp <= _time()){
+            revert AlreadyExpired();
+        }
+
         // Make sure the SBT hasn't been mint yet
         if (_onlyTokenID[tokenInfo.digest][tokenInfo.attester][tokenInfo.programHash][tokenInfo.ctype] != 0){
             revert AlreadyMint();
@@ -145,8 +150,8 @@ STORAGE
         }
 
         // Verify the signature first, then mint
-        // bool isTokenInfoValid = Tokens.verifySignature(tokenInfo, verifierSignature);
-        // if (isTokenInfoValid == false) revert MintInfoInvalid();
+        bool isTokenInfoValid = Tokens.verifySignature(tokenInfo, verifierSignature, INITIAL_DOMAIN_SEPARATOR);
+        if (isTokenInfoValid == false) revert MintInfoInvalid();
 
         _tokenIds.increment();
         uint256 id = _tokenIds.current();
@@ -259,7 +264,7 @@ STORAGE
         if (!_exists(id)) return false;
 
         // check its expirationDate
-        if (_tokenDB[id].expirationTimestamp <= _time()){
+        if (_tokenDB[id].expirationTimestamp != 0 && _tokenDB[id].expirationTimestamp <= _time()){
             return false;
         }
         return true;
@@ -341,6 +346,10 @@ STORAGE
      */
     function DOMAIN_SEPARATOR() public view virtual returns (bytes32) {
         return computeDomainSeparator();
+    }
+
+    function CHAIN_ID() public view virtual returns (uint256) {
+        return INITIAL_CHAIN_ID;
     }
 
     function computeDomainSeparator() internal view virtual returns (bytes32) {
