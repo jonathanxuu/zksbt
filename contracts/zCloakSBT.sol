@@ -22,6 +22,9 @@ error VerifierNotInWhitelist();
 error AlreadySetKey();
 error NotSetKey();
 error AlreadyExpired();
+error AttesterSignatureInvalid();
+
+import "hardhat/console.sol";
 
 contract zCloakSBT is ERC721Enumerable, Ownable, ReentrancyGuard {
     using Counters for Counters.Counter;
@@ -35,8 +38,8 @@ STORAGE
 
     bool public mintOpen;
 
-    // used for attesters/verifiers to store their key mapping;
-    // mapping(address => address) private _assertionKeyMapping;
+    // used for attesters to store their assertionMethod mapping;
+    mapping(address => address) private _assertionMethodMapping;
 
     mapping(address => bool) private _verifierWhitelist;
 
@@ -134,6 +137,12 @@ STORAGE
             revert AlreadyExpired();
         }
 
+        // check whether the signature is valid (assertionMethod)
+        address attesterAssertionMethod = (_assertionMethodMapping[tokenInfo.attester] == address(0) ? tokenInfo.attester : _assertionMethodMapping[tokenInfo.attester]);
+        if (Tokens.verifyAttesterSignature(attesterAssertionMethod, tokenInfo.attesterSignature, tokenInfo.digest, tokenInfo.vcVersion) == false) {
+            revert AttesterSignatureInvalid();
+        }
+
         // Make sure the SBT hasn't been mint yet
         if (_onlyTokenID[tokenInfo.digest][tokenInfo.attester][tokenInfo.programHash][tokenInfo.ctype] != 0){
             revert AlreadyMint();
@@ -226,23 +235,23 @@ STORAGE
      * @notice Used to set the key ralation stored on chain. Eth => assertionMethod
      */
     //prettier-ignore
-    // function setAssertionKey(address assertionKey) public payable {
-    //     if (_assertionKeyMapping[msg.sender] != address(0)) {
-    //         revert AlreadySetKey();
-    //     }
-    //     _assertionKeyMapping[msg.sender] = assertionKey;
-    // }
+    function setAssertionMethod(address assertionMethod) public payable {
+        if (_assertionMethodMapping[msg.sender] != address(0)) {
+            revert AlreadySetKey();
+        }
+        _assertionMethodMapping[msg.sender] = assertionMethod;
+    }
 
     /**
      * @notice Used to remove the key ralation stored on chain
      */
     //prettier-ignore
-    // function removeAssertionKey(address assertionKey) public payable {
-    //     if (_assertionKeyMapping[msg.sender] == address(0)) {
-    //         revert NotSetKey();
-    //     }
-    //     _assertionKeyMapping[msg.sender] = address(0);
-    // }
+    function removeAssertionMehod(address assertionMethod) public payable {
+        if (_assertionMethodMapping[msg.sender] == address(0)) {
+            revert NotSetKey();
+        }
+        _assertionMethodMapping[msg.sender] = address(0);
+    }
 
     /**
      * @notice Used to check whether the user owns a certain class of zkSBT with certain programHash, and whether it is valid at present.
