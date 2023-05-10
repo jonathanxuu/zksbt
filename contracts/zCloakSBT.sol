@@ -18,11 +18,13 @@ error AlreadyMint();
 error DigestAlreadyRevoked();
 error BindingNotExist();
 error BindingAlreadyOccupied();
+error BindingSignatureInvalid();
 error VerifierNotInWhitelist();
 error AlreadySetKey();
 error NotSetKey();
 error AlreadyExpired();
 error AttesterSignatureInvalid();
+error UnBindingLimited();
 
 import "hardhat/console.sol";
 
@@ -206,29 +208,32 @@ STORAGE
      */
     //prettier-ignore
     // eip 191 -- I bound oxabcd to 0x1234.
-    function setBinding(address bindingAddr, address bindedAddr, bytes memory signatureBinding, bytes memory signatureBinded) public payable {
+    function setBinding(address bindingAddr, address bindedAddr, bytes memory bindingSignature, bytes memory bindedSignature) public payable {
         if (_bindingDB[bindingAddr] != address(0)) {
             revert BindingAlreadyOccupied();
         }
-
-        // todo: Add check for the 2 signature, when the binding relation is set, should emit a event 
-        _bindingDB[bindingAddr] = bindedAddr;
-        emit BindingSetSuccess(bindingAddr, bindedAddr);
+        if (Tokens.verifyBindingSignature(bindingAddr, bindedAddr, bindingSignature, bindedSignature) == true) {
+            _bindingDB[bindingAddr] = bindedAddr;
+            emit BindingSetSuccess(bindingAddr, bindedAddr);
+        } else {
+            revert BindingSignatureInvalid();
+        }
     }
 
     /**
      * @notice Used to set the unbind the ralation stored on chain
      */
     //prettier-ignore
-    function unBinding(address bindingAddr, address bindedAddr, bytes memory signatureBinding, bytes memory signatureBinded) public payable {
+    function unBinding(address bindingAddr, address bindedAddr) public payable {
         if (_bindingDB[bindingAddr] != bindedAddr) {
             revert BindingNotExist();
         }
-
-        // todo: Add check for the 2 signature, when the unbinding is done should emit a event 
-
-        _bindingDB[bindingAddr] = address(0);
-        emit UnBindingSuccess(bindingAddr, bindedAddr);
+        if (msg.sender == bindingAddr || msg.sender == bindedAddr) {
+            _bindingDB[bindingAddr] = address(0);
+            emit UnBindingSuccess(bindingAddr, bindedAddr);
+        } else {
+            revert UnBindingLimited();
+        }
     }
 
     /**
@@ -258,7 +263,7 @@ STORAGE
      */
     //prettier-ignore
     // function checkSBTClassValid(address userAddr, address attester, bytes32 programHash, bytes32 ctype) public view returns (Tokens.TokenOnChain memory) {
-    //     return 
+    //     return
     //     // todo: Need to code check logics
     // }
 
