@@ -50,6 +50,9 @@ STORAGE
     // used to bind a did address with a eth address (all the sbt mint to the binding addr should be mint to the binded addr instead)
     mapping(address => address) private _bindingDB;
 
+    // Record all tokenIDs send to the binded address
+    mapping(address => mapping(address => uint256[])) private _bindedSBT;
+
     // Record the tokenID mint by the verifier, is the verifier is dishonest, burn all SBTs handled by the verifier
     mapping(address => uint256[]) private _verifierWorkDB;
 
@@ -168,7 +171,15 @@ STORAGE
         uint256 id = _tokenIds.current();
 
         // check whether there exist a binded address on-chain, if yes, mint the SBT to the binded address
-        address realRecipient = (_bindingDB[tokenInfo.recipient] == address(0) ? Tokens.getRecipient(tokenInfo) : _bindingDB[tokenInfo.recipient]);
+        address realRecipient;
+        if (_bindingDB[tokenInfo.recipient] == address(0)) {
+             realRecipient = Tokens.getRecipient(tokenInfo);
+        } else {
+             realRecipient = _bindingDB[tokenInfo.recipient];
+             // todo  check the push is success
+             _bindedSBT[Tokens.getRecipient(tokenInfo)][realRecipient].push(id);
+        }
+
         Tokens.TokenOnChain memory tokenOnChainInfo = Tokens.fillTokenOnChain(tokenInfo, _time(), realRecipient);
 
         _mint(realRecipient, id);
@@ -229,7 +240,15 @@ STORAGE
             revert BindingNotExist();
         }
         if (msg.sender == bindingAddr || msg.sender == bindedAddr) {
+            // revoke all related SBT
+            uint256[] memory revokeList = _bindedSBT[bindingAddr][bindedAddr];
+            for (uint i = 0; i < revokeList.length; i++){
+               super._burn(revokeList[i]);
+            }
+
+            // set it to default
             _bindingDB[bindingAddr] = address(0);
+            _bindedSBT[bindingAddr][bindedAddr] = new uint256[](0);
             emit UnBindingSuccess(bindingAddr, bindedAddr);
         } else {
             revert UnBindingLimited();
