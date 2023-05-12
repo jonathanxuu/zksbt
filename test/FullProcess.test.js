@@ -36,9 +36,15 @@ describe("Full Zksbt Flow Test Case", () => {
     await zCloakSBT.toggleMinting();
     expect(await zCloakSBT.mintOpen()).equal(true);
 
+    // set assertionMethodKey first
+    // TODO: deployer is default attester
+    await zCloakSBT.setAssertionMethod(
+      "0x361F1dd3db9037d2aC39f84007DC65dfA8BD248E"
+    );
+
     await expect(zCloakSBT.mint(tokenInfo, mintSig))
       .to.emit(zCloakSBT, "MintSuccess")
-      .withArgs("0x57E7b664aaa7C895878DdCa5790526B9659350Ec", 1);
+      .withArgs("0x11f8b77F34FCF14B7095BF5228Ac0606324E82D1", 1);
   });
 
   it("should success if deployer adds new verifiers", async () => {
@@ -96,7 +102,7 @@ describe("Full Zksbt Flow Test Case", () => {
     });
     await transferTx.wait();
     expect(ethers.utils.formatEther(await attester.getBalance())).to.equal(
-      "10"
+      "10.0"
     );
 
     // deployer mint first
@@ -127,7 +133,13 @@ describe("Full Zksbt Flow Test Case", () => {
 
   it("should success if check token valid", async () => {
     // mint first
+    await zCloakSBT.mint(tokenInfo, mintSig);
+    expect(await zCloakSBT.balanceOf(deployer.address)).to.equal(1);
+
     // _exist()
+    expect(await zCloakSBT.checkTokenExist(1)).to.equal(true);
+
     // expirationTimestamp
+    // TODO:
   });
 });
