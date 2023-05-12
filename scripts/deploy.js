@@ -34,8 +34,8 @@ const main = async () => {
     //         "https://jsonkeeper.com/b/RJDK"
     // ],"0x0001")
     // Wait for it to be mined.
-    await txn.wait()
-    console.log("Minted NFT #1")
+    // await txn.wait()
+    // console.log("Minted NFT #1")
   
 
   };
