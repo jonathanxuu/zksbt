@@ -26,8 +26,6 @@ error VCAlreadyExpired();
 error AttesterSignatureInvalid();
 error UnBindingLimited();
 
-import "hardhat/console.sol";
-
 contract zCloakSBT is ERC721Enumerable, Ownable, ReentrancyGuard {
     using Counters for Counters.Counter;
     using Strings for uint256;
@@ -285,7 +283,7 @@ STORAGE
      * @notice Used to remove the key ralation stored on chain
      */
     //prettier-ignore
-    function removeAssertionMehod(address assertionMethod) public payable {
+    function removeAssertionMehod() public payable {
         if (_assertionMethodMapping[msg.sender] == address(0)) {
             revert NotSetKey();
         }

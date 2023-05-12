@@ -1,8 +1,6 @@
 pragma solidity >=0.8.0 <0.9.0;
-import "hardhat/console.sol";
 
 //SPDX-License-Identifier: MIT
-
 library Tokens {
     error vcVersionNotValid();
 
@@ -136,7 +134,7 @@ library Tokens {
         Token memory tokenDetail,
         bytes memory signature,
         bytes32 domain_separator
-    ) internal view returns (bool) {
+    ) internal pure returns (bool) {
         bytes32 structHash = keccak256(
             abi.encode(
                 MINT_TYPEHASH,

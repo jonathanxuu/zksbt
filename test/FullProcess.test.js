@@ -1,10 +1,10 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
-const { tokenInfo, mintSig } = require("./variables");
+const { tokenInfo } = require("./variables");
 
 const verifiers = ["0x11f8b77F34FCF14B7095BF5228Ac0606324E82D1"];
 const digest =
-  "0x1ba8c6b69327b90766d956e6bad61f7af0de4529177154050a64de24f1936c21";
+  "0x04535f0e6831895fe49e8719319f8073ff49d0e653d0a7a37f290b9f4540765d";
 
 // contract instance
 let tokens;
@@ -29,7 +29,7 @@ describe("Full Zksbt Flow Test Case", () => {
   it("should success if user executes mint logic", async () => {
     // console.log(await zCloakSBT.CHAIN_ID());
     // console.log(await zCloakSBT.DOMAIN_SEPARATOR());
-    // console.log();
+    // console.log( "the address is ", await ethers.getSigner());
 
     // toggle mint on
     expect(await zCloakSBT.mintOpen()).equal(false);
@@ -38,7 +38,7 @@ describe("Full Zksbt Flow Test Case", () => {
 
     // set assertionMethodKey first
     await zCloakSBT.setAssertionMethod(
-      "0x361F1dd3db9037d2aC39f84007DC65dfA8BD248E"
+      "0x9eF88b8749B7E5a0E2deA5dD10c9939565D2D215"
     );
     console.log("the check verifier contract1 is :", zCloakSBT.address);
 
@@ -46,19 +46,19 @@ describe("Full Zksbt Flow Test Case", () => {
       zCloakSBT.mint(
         [
           "0x11f8b77F34FCF14B7095BF5228Ac0606324E82D1",
-          "0x1209c3865ae4631cceacfbb3d4a946fec4ff97d3c7454a0383cb7e26b0bb8189",
+          "0x5f0d91707ce8e3e252f433b9d6c611fa8851c99c6f359f5b604cd0b8c8d355a7",
           "0x415a479f191532b76f464c2f0368acf528ff4d1c525c3bc88f63a6ecf3d71872",
-          "0x1ba8c6b69327b90766d956e6bad61f7af0de4529177154050a64de24f1936c21",
+          "0xe6a3fcdff048e876c22c9503b31442dc6a35ba82c50178fcfdd688f2df12bd28",
           "0x11f8b77F34FCF14B7095BF5228Ac0606324E82D1",
-          "0x57E7b664aaa7C895878DdCa5790526B9659350Ec",
-          "0xa854b8d4aaf7f2ad1bce98f28a63c06821938955f19b7a1bfd4ca43dca88231e3f6cea6107c218a542b4ef66bc3852ffd7d0a3209f449de79a8909973d3eed2b00",
+          "0xFeDE01Ff4402e35c6f6d20De9821d64bDF4Ba563",
+          "0x9b43f8dc281abd550dbaa65396b76c0e7dc200498cae929ba858df8d132af43a7d2accdd1b8746d9fb2f2c76071c9174e7f17d95f9709610b15e66e5a687349601",
           [8, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-          1683875180311,
+          1683909331084,
           0,
           "0x0001",
           "ar:///MzXyO8ZH3dyyp9wdXAVuUT57vGLFifs3TnskClOoFSQ",
         ],
-        "0x5f9a79b39c35c6bcc5b5af63737e40d4d09255cf86aa3c2a5ffd6a96afca431765718a83071747a9e1e634367d0013145c23aa7cb7cdb02b7a3da0630cfcf08401"
+        "0x64647c9eb72d4bf6ceeaee93956fe2fd9cc14471b3e753625d8c5aac531b02a01dc942f9ba0091e02621cfab44c08ceba91ba9f867f39d947c30efac87e1c3fe00"
       )
     ).emit(zCloakSBT, "MintSuccess");
   });
@@ -115,17 +115,33 @@ describe("Full Zksbt Flow Test Case", () => {
     await zCloakSBT.toggleMinting();
 
     await zCloakSBT.setAssertionMethod(
-      "0x361F1dd3db9037d2aC39f84007DC65dfA8BD248E"
+      "0x9eF88b8749B7E5a0E2deA5dD10c9939565D2D215"
     );
 
-    await zCloakSBT.mint(tokenInfo, mintSig);
+    await zCloakSBT.mint(
+      [
+        "0x11f8b77F34FCF14B7095BF5228Ac0606324E82D1",
+        "0x5f0d91707ce8e3e252f433b9d6c611fa8851c99c6f359f5b604cd0b8c8d355a7",
+        "0x415a479f191532b76f464c2f0368acf528ff4d1c525c3bc88f63a6ecf3d71872",
+        "0xe6a3fcdff048e876c22c9503b31442dc6a35ba82c50178fcfdd688f2df12bd28",
+        "0x11f8b77F34FCF14B7095BF5228Ac0606324E82D1",
+        "0xFeDE01Ff4402e35c6f6d20De9821d64bDF4Ba563",
+        "0x9b43f8dc281abd550dbaa65396b76c0e7dc200498cae929ba858df8d132af43a7d2accdd1b8746d9fb2f2c76071c9174e7f17d95f9709610b15e66e5a687349601",
+        [8, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        1683909331084,
+        0,
+        "0x0001",
+        "ar:///MzXyO8ZH3dyyp9wdXAVuUT57vGLFifs3TnskClOoFSQ",
+      ],
+      "0xba388484555396e3381be04441addd7fd11a4382525d01a5b1620e8868c3b9dc4b138172aa9a5409d00da1a500953c0c1010e8643b360d2adffacd9cfa941ec601"
+    );
 
     expect(await zCloakSBT.checkRevokeDB(attester.address, digest)).to.equal(
       false
     );
     await expect(
       zCloakSBT.revokeByDigest(
-        "0x1ba8c6b69327b90766d956e6bad61f7af0de4529177154050a64de24f1936c21"
+        "0x04535f0e6831895fe49e8719319f8073ff49d0e653d0a7a37f290b9f4540765d"
       )
     ).emit(zCloakSBT, "RevokeSuccess");
 
@@ -158,26 +174,26 @@ describe("Full Zksbt Flow Test Case", () => {
 
     // console.log(await ethers.getSigner())
     await zCloakSBT.setAssertionMethod(
-      "0x361F1dd3db9037d2aC39f84007DC65dfA8BD248E"
+      "0x9eF88b8749B7E5a0E2deA5dD10c9939565D2D215"
     );
 
     await expect(
       zCloakSBT.mint(
         [
           "0x11f8b77F34FCF14B7095BF5228Ac0606324E82D1",
-          "0x1209c3865ae4631cceacfbb3d4a946fec4ff97d3c7454a0383cb7e26b0bb8189",
+          "0x5f0d91707ce8e3e252f433b9d6c611fa8851c99c6f359f5b604cd0b8c8d355a7",
           "0x415a479f191532b76f464c2f0368acf528ff4d1c525c3bc88f63a6ecf3d71872",
-          "0x1ba8c6b69327b90766d956e6bad61f7af0de4529177154050a64de24f1936c21",
+          "0xe6a3fcdff048e876c22c9503b31442dc6a35ba82c50178fcfdd688f2df12bd28",
           "0x11f8b77F34FCF14B7095BF5228Ac0606324E82D1",
-          "0x57E7b664aaa7C895878DdCa5790526B9659350Ec",
-          "0xa854b8d4aaf7f2ad1bce98f28a63c06821938955f19b7a1bfd4ca43dca88231e3f6cea6107c218a542b4ef66bc3852ffd7d0a3209f449de79a8909973d3eed2b00",
+          "0xFeDE01Ff4402e35c6f6d20De9821d64bDF4Ba563",
+          "0x9b43f8dc281abd550dbaa65396b76c0e7dc200498cae929ba858df8d132af43a7d2accdd1b8746d9fb2f2c76071c9174e7f17d95f9709610b15e66e5a687349601",
           [8, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-          1683875180311,
+          1683909331084,
           0,
           "0x0001",
           "ar:///MzXyO8ZH3dyyp9wdXAVuUT57vGLFifs3TnskClOoFSQ",
         ],
-        "0x8f5c3953eab4238d8507589fe429300a43c96c8b5c83be6cb0c942838af207f67658c85ea0d10d1103b10ec4cc15aab4e22eaaba715422035bd6dd218de76e4101"
+        "0x91ac5605e38b74b7dce88b4e0117d37c2698a35e6fcf7eb326818b808a4cb260084cd934a40ad19d87ad4868b9a6902635731944aada0e83c256ec4baa47cdf300"
       )
     ).emit(zCloakSBT, "MintSuccess");
     // Wait for it to be mined.
