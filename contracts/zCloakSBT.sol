@@ -388,4 +388,25 @@ STORAGE
     function _time() internal view returns (uint64) {
         return uint64(block.timestamp);
     }
+
+    /////////////// TEST FUNCTIONS ///////////////
+    function checkVerifierWhitelist(
+        address verifier
+    ) public view returns (bool) {
+        return _verifierWhitelist[verifier];
+    }
+
+    function checkRevokeDB(
+        address attester,
+        bytes32 digest
+    ) public view returns (bool) {
+        return _revokeDB[attester][digest];
+    }
+
+    function checkDigestConvertCollection(
+        address attester,
+        bytes32 digest
+    ) public view returns (uint256[] memory) {
+        return _digestConvertCollection[attester][digest];
+    }
 }

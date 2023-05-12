@@ -5,13 +5,16 @@ const { tokenInfo, mintSig } = require("./variables");
 describe("Full Zksbt Flow Test Case", () => {
   // zCloakSBT contract constructor args
   const verifiers = ["0x11f8b77F34FCF14B7095BF5228Ac0606324E82D1"];
+  const digest =
+    "0x0c240bce4ce46341ed63bef97a701881317f381770cab2edf6fe17c4fa547214";
 
   // contract instance
   let tokens;
   let zCloakSBT;
 
   // signer
-  let attester;
+  const attesterWallet = ethers.Wallet.fromMnemonic(process.env.MNEMONIC_ALICE);
+  const attester = attesterWallet.connect(ethers.provider);
 
   before(async () => {
     tokens = await ethers.deployContract("Tokens");
@@ -85,10 +88,46 @@ describe("Full Zksbt Flow Test Case", () => {
   });
 
   it("should success if attester burn(revoke) SBT by digest", async () => {
-    await zCloakSBT
-      .connect(attester)
-      .revokeByDigest(
-        "0x0c240bce4ce46341ed63bef97a701881317f381770cab2edf6fe17c4fa547214"
-      );
+    // transfer some money to attester for paying gas
+    const [deployer] = await ethers.getSigners();
+    const transferTx = await deployer.sendTransaction({
+      to: attester.address,
+      value: ethers.utils.parseEther("10.0"),
+    });
+    await transferTx.wait();
+    expect(ethers.utils.formatEther(await attester.getBalance())).to.equal(
+      "10"
+    );
+
+    // deployer mint first
+    await zCloakSBT.mint(tokenInfo, mintSig);
+    expect(await zCloakSBT.balanceOf(deployer.address)).to.equal(1);
+
+    expect(await zCloakSBT.checkRevokeDB(attester.address, digest)).to.equal(
+      false
+    );
+    await expect(
+      zCloakSBT
+        .connect(attester)
+        .revokeByDigest(
+          "0x0c240bce4ce46341ed63bef97a701881317f381770cab2edf6fe17c4fa547214"
+        )
+    )
+      .to.emit(zCloakSBT, "RevokeSuccess")
+      .withArgs(attester.address, [1]);
+    expect(await zCloakSBT.checkRevokeDB(attester.address, digest)).to.equal(
+      true
+    );
+    expect(await zCloakSBT.balanceOf(deployer)).to.equal(0);
+  });
+
+  it("should success if set binding", async () => {});
+
+  it("should success if unbinding", async () => {});
+
+  it("should success if check token valid", async () => {
+    // mint first
+    // _exist()
+    // expirationTimestamp
   });
 });
