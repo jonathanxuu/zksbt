@@ -159,6 +159,7 @@ STORAGE
         // mint before, but the token is burned (not revoked by the attester), can be mint again
         if (maybe_mint_id != 0 && !checkTokenValid(maybe_mint_id)){
             _onlyTokenID[tokenInfo.digest][tokenInfo.attester][tokenInfo.programHash][tokenInfo.ctype] = 0;
+        }
 
         
         }
