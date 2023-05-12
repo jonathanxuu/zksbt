@@ -12,7 +12,7 @@ import {Tokens} from "./libs/Tokens.sol";
 error Soulbound();
 error MintDisabled();
 error InvalidSignature();
-error DoesNotExist();
+error TokenNotExist();
 error MintInfoInvalid();
 error AlreadyMint();
 error DigestAlreadyRevoked();
@@ -22,7 +22,7 @@ error BindingSignatureInvalid();
 error VerifierNotInWhitelist();
 error AlreadySetKey();
 error NotSetKey();
-error AlreadyExpired();
+error VCAlreadyExpired();
 error AttesterSignatureInvalid();
 error UnBindingLimited();
 
@@ -50,6 +50,9 @@ STORAGE
     // used to bind a did address with a eth address (all the sbt mint to the binding addr should be mint to the binded addr instead)
     mapping(address => address) private _bindingDB;
 
+    // Record all tokenIDs send to the binded address
+    mapping(address => mapping(address => uint256[])) private _bindedSBT;
+
     // Record the tokenID mint by the verifier, is the verifier is dishonest, burn all SBTs handled by the verifier
     mapping(address => uint256[]) private _verifierWorkDB;
 
@@ -60,6 +63,9 @@ STORAGE
     // A storage for the attester to revoke certain VC, thus the SBT should be burn therefore(if not mint yet, forbid its mint in the future) (attester, digest)
     mapping(address => mapping(bytes32 => bool)) private _revokeDB;
 
+    // Check whether the address owns certain SBT, address realRecipient, address attester, bytes32 programHash, bytes32 ctype
+    mapping(address => mapping(address => mapping(bytes32 => mapping(bytes32 => uint256))))
+        private _certainSbtDB;
     // Record all SBT(tokenID) minted by the specific digest (attester, digest) => tokenID[]
     mapping(address => mapping(bytes32 => uint256[]))
         private _digestConvertCollection;
@@ -136,7 +142,7 @@ STORAGE
         if (mintOpen == false) revert MintDisabled();
 
         if (tokenInfo.expirationTimestamp != 0 && tokenInfo.expirationTimestamp <= _time()){
-            revert AlreadyExpired();
+            revert VCAlreadyExpired();
         }
 
         // check whether the signature is valid (assertionMethod)
@@ -146,8 +152,20 @@ STORAGE
         }
 
         // Make sure the SBT hasn't been mint yet
-        if (_onlyTokenID[tokenInfo.digest][tokenInfo.attester][tokenInfo.programHash][tokenInfo.ctype] != 0){
+        uint256 maybe_mint_id = _onlyTokenID[tokenInfo.digest][tokenInfo.attester][tokenInfo.programHash][tokenInfo.ctype];
+        if (maybe_mint_id != 0 && checkTokenValid(maybe_mint_id)){
             revert AlreadyMint();
+        }
+        // mint before, but the token is burned (not revoked by the attester), can be mint again
+        if (maybe_mint_id != 0 && !checkTokenValid(maybe_mint_id)){
+            _onlyTokenID[tokenInfo.digest][tokenInfo.attester][tokenInfo.programHash][tokenInfo.ctype] = 0;
+
+        
+        }
+
+
+        if (_onlyTokenID[tokenInfo.digest][tokenInfo.attester][tokenInfo.programHash][tokenInfo.ctype] != 0)
+        {
         }
 
         // Make sure the VC issued by the attester is not revoked yet
@@ -168,15 +186,26 @@ STORAGE
         uint256 id = _tokenIds.current();
 
         // check whether there exist a binded address on-chain, if yes, mint the SBT to the binded address
-        address realRecipient = (_bindingDB[tokenInfo.recipient] == address(0) ? Tokens.getRecipient(tokenInfo) : _bindingDB[tokenInfo.recipient]);
+        address realRecipient;
+        if (_bindingDB[tokenInfo.recipient] == address(0)) {
+             realRecipient = Tokens.getRecipient(tokenInfo);
+        } else {
+             realRecipient = _bindingDB[tokenInfo.recipient];
+             // todo  check the push is success
+             _bindedSBT[Tokens.getRecipient(tokenInfo)][realRecipient].push(id);
+        }
+
         Tokens.TokenOnChain memory tokenOnChainInfo = Tokens.fillTokenOnChain(tokenInfo, _time(), realRecipient);
 
         _mint(realRecipient, id);
         _tokenDB[id] = tokenOnChainInfo;
-
+        
+        
         // Push the tokenID to the work of the verifier
         _verifierWorkDB[tokenInfo.verifier].push(id);
         _onlyTokenID[tokenOnChainInfo.digest][tokenOnChainInfo.attester][tokenOnChainInfo.programHash][tokenOnChainInfo.ctype] = id;
+        // userAddr, address attester, bytes32 programHash, bytes32 ctype
+        _certainSbtDB[realRecipient][tokenOnChainInfo.attester][tokenOnChainInfo.programHash][tokenOnChainInfo.ctype] = id;
 
 
         // Add the tokenID to the digest collection, when revoke the digest, could burn all the tokenID related to that
@@ -229,7 +258,15 @@ STORAGE
             revert BindingNotExist();
         }
         if (msg.sender == bindingAddr || msg.sender == bindedAddr) {
+            // revoke all related SBT
+            uint256[] memory revokeList = _bindedSBT[bindingAddr][bindedAddr];
+            for (uint i = 0; i < revokeList.length; i++){
+               super._burn(revokeList[i]);
+            }
+
+            // set it to default
             _bindingDB[bindingAddr] = address(0);
+            _bindedSBT[bindingAddr][bindedAddr] = new uint256[](0);
             emit UnBindingSuccess(bindingAddr, bindedAddr);
         } else {
             revert UnBindingLimited();
@@ -262,10 +299,16 @@ STORAGE
      * @notice Used to check whether the user owns a certain class of zkSBT with certain programHash, and whether it is valid at present.
      */
     //prettier-ignore
-    // function checkSBTClassValid(address userAddr, address attester, bytes32 programHash, bytes32 ctype) public view returns (Tokens.TokenOnChain memory) {
-    //     return
-    //     // todo: Need to code check logics
-    // }
+    function checkSBTClassValid(address userAddr, address attester, bytes32 programHash, bytes32 ctype) public view returns (Tokens.TokenOnChain memory) {
+        uint256 tokenId = _certainSbtDB[userAddr][attester][programHash][ctype];
+        
+        if (!checkTokenValid(tokenId)){
+            revert TokenNotExist();
+        }
+        
+        return _tokenDB[tokenId];
+        // todo: Need to code check logics
+    }
 
     /**
      * @notice Check whether a zkSBT is valid, check its existance, expirationDate not reach and it hasn't been revoked.
@@ -289,7 +332,7 @@ STORAGE
      */
     // prettier-ignore
     function tokenURI(uint256 id) public view override returns (string memory) {
-        if (!_exists(id)) revert DoesNotExist();
+        if (!_exists(id)) revert TokenNotExist();
         // todo: dertermine whether need's title and description for each SBT.
         return _tokenDB[id].sbtLink;
     }
@@ -331,6 +374,11 @@ STORAGE
                 to == address(0x000000000000000000000000000000000000dEaD),
             "SOULBOUND: Non-Transferable"
         );
+        require(batchSize == 1, "Can only mint/burn one at the same time");
+        if (to == address(0x000000000000000000000000000000000000dEaD)) {
+            Tokens.TokenOnChain memory empty;
+            _tokenDB[firstTokenId] = empty;
+        }
         super._beforeTokenTransfer(from, to, firstTokenId, batchSize);
     }
 
