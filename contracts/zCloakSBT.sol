@@ -254,8 +254,10 @@ STORAGE
             // revoke all related SBT
             uint256[] memory revokeList = _bindedSBT[bindingAddr][bindedAddr];
             for (uint i = 0; i < revokeList.length; i++){
-               super._burn(revokeList[i]);
-               Tokens.TokenOnChain memory empty;
+                if (_exists(revokeList[i])){
+                    super._burn(revokeList[i]);
+                } 
+                Tokens.TokenOnChain memory empty;
                 _tokenDB[revokeList[i]] = empty;
             }
 
@@ -463,9 +465,7 @@ STORAGE
         return _digestConvertCollection[attester][digest];
     }
 
-    function checkBindingDB(
-        address bindingAddr
-    ) public view returns (address) {
+    function checkBindingDB(address bindingAddr) public view returns (address) {
         return _bindingDB[bindingAddr];
     }
 
