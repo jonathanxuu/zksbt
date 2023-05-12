@@ -328,8 +328,14 @@ STORAGE
     // prettier-ignore
     function tokenURI(uint256 id) public view override returns (string memory) {
         if (!_exists(id)) revert TokenNotExist();
+        string memory sbtImage = _tokenDB[id].sbtLink;
+        string memory json = string.concat(
+            '{"image":"',
+            sbtImage,
+            '"}'
+        );
         // todo: dertermine whether need's title and description for each SBT.
-        return _tokenDB[id].sbtLink;
+        return string.concat("data:application/json;utf8,", json);
     }
 
     function contractURI() external pure returns (string memory) {
@@ -455,6 +461,24 @@ STORAGE
         bytes32 digest
     ) public view returns (uint256[] memory) {
         return _digestConvertCollection[attester][digest];
+    }
+
+    function checkBindingDB(
+        address bindingAddr
+    ) public view returns (address) {
+        return _bindingDB[bindingAddr];
+    }
+
+    function checkBindingSBTDB(
+        address bindingAddr
+    ) public view returns (uint256[] memory) {
+        return _bindedSBT[bindingAddr][_bindingDB[bindingAddr]];
+    }
+
+    function checkVerifierWorkDB(
+        address verifier
+    ) public view returns (uint256[] memory) {
+        return _verifierWorkDB[verifier];
     }
 
     function checkTokenExist(uint256 tokenID) public view returns (bool) {

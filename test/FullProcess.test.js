@@ -198,4 +198,19 @@ describe("Full Zksbt Flow Test Case", () => {
     ).emit(zCloakSBT, "MintSuccess");
     // Wait for it to be mined.
   });
+  it("Check Verifier Signature", async () => {
+    console.log(await zCloakSBT.CHAIN_ID());
+    console.log(await zCloakSBT.DOMAIN_SEPARATOR());
+    console.log("the check verifier contract is :", zCloakSBT.address);
+    await zCloakSBT.toggleMinting();
+    await expect(
+      zCloakSBT.setBinding(
+"0xFeDE01Ff4402e35c6f6d20De9821d64bDF4Ba563",
+"0x11f8b77F34FCF14B7095BF5228Ac0606324E82D1",
+"0x2d18e2cbd7e728f0c838d4207a61c592e5ee33d1e5b0128212759077d9a43bb71bb3d9094dbd0a5f74f0dc19328dc95dfbd836e0ed850e404ff87aecdd43026400",
+"0x94d029e16cb6c27758a0c1d094028645757f51a1cd2f94a3948ee2836b77b91236df474c2b296324a4fb1a541567b2128d022af4791e26ee0234753c6c278c6400"
+
+        
+      )).emit(zCloakSBT, "BindingSetSuccess")
+  });
 });
