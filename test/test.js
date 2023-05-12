@@ -19,23 +19,26 @@ describe("Token contract", function () {
 
 
   it("Check Verifier Signature", async () => {
-    // console.log(await zCloakSBTObj.CHAIN_ID());
-    // console.log(await zCloakSBTObj.DOMAIN_SEPARATOR());
-    // console.log(zCloakSBTObj.address)
+    console.log(await zCloakSBTObj.CHAIN_ID());
+    console.log(await zCloakSBTObj.DOMAIN_SEPARATOR());
+    console.log(zCloakSBTObj.address)
+    // console.log(await ethers.getSigner())
+    await zCloakSBTObj.setAssertionMethod("0x361F1dd3db9037d2aC39f84007DC65dfA8BD248E");
+
     await expect(zCloakSBTObj.mint([
+        "0x11f8b77F34FCF14B7095BF5228Ac0606324E82D1",
+        "0x1209c3865ae4631cceacfbb3d4a946fec4ff97d3c7454a0383cb7e26b0bb8189",
+        "0x415a479f191532b76f464c2f0368acf528ff4d1c525c3bc88f63a6ecf3d71872",
+        "0xf8def3fd1c7a973caf9585004572425a57629135f75e59f9e86c866e5ef4a711",
+        "0x11f8b77F34FCF14B7095BF5228Ac0606324E82D1",
         "0x57E7b664aaa7C895878DdCa5790526B9659350Ec",
-        "0x824c9cd9f7fe36c33a2ded2c4b17be4b0d8a159f57baa193213e7365be1118bd",
-        "0x01d680e6c4f82c8274c43626c67a0f494e65f147245330a3bd6a9c69271223c1",
-        "0x0c240bce4ce46341ed63bef97a701881317f381770cab2edf6fe17c4fa547214",
-        "0x11f8b77F34FCF14B7095BF5228Ac0606324E82D1",
-        "0x11f8b77F34FCF14B7095BF5228Ac0606324E82D1",
+        "0xa2c943344e2ad6518a6ba093bfd66a48e2342d0a371c78654da530f073eb74d82ccf2308c943d15430c8fed312927e8e68d74a490b8a0727e712d617fcc829e400",
         [8,12,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-        1682562340054,
+        1683795666607,
         0,
         "0x0001",
         "ar:///MzXyO8ZH3dyyp9wdXAVuUT57vGLFifs3TnskClOoFSQ"
-    ],"0x3bf8228d9e36c84853a276fcdb0e1fe9fd247c66b0020dfacd620a77111ac5596eeaf0c3fe293936f4ced2d9378224faa6dc6e6eb303418c66c3cd8925a674bf00")).emit(zCloakSBTObj,"MintSuccess");
+    ],"0x24a068b5df815846ca43947412637b182ed2d02273600ac8252c6ce75b9345ac0f6a89e56017465dd0418e7773d0e7e9ed33fe78e0d113aad4bfcf072a3150ab01")).emit(zCloakSBTObj,"MintSuccess");
     // Wait for it to be mined.
-    // expect(await hardhatToken.totalSupply()).to.equal(ownerBalance);
   });
 });
