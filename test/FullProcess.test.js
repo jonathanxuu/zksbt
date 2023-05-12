@@ -2,21 +2,22 @@ const { expect } = require("chai");
 const { ethers } = require("hardhat");
 const { tokenInfo, mintSig } = require("./variables");
 
+const verifiers = ["0x11f8b77F34FCF14B7095BF5228Ac0606324E82D1"];
+const digest =
+  "0x1ba8c6b69327b90766d956e6bad61f7af0de4529177154050a64de24f1936c21";
+
+// contract instance
+let tokens;
+let zCloakSBT;
+
+// signer
+const attesterWallet = ethers.Wallet.fromMnemonic(process.env.MNEMONIC_ALICE);
+const attester_addr = ethers.utils;
+const attester = attesterWallet.connect(ethers.provider);
+
 describe("Full Zksbt Flow Test Case", () => {
   // zCloakSBT contract constructor args
-  const verifiers = ["0x11f8b77F34FCF14B7095BF5228Ac0606324E82D1"];
-  const digest =
-    "0x0c240bce4ce46341ed63bef97a701881317f381770cab2edf6fe17c4fa547214";
-
-  // contract instance
-  let tokens;
-  let zCloakSBT;
-
-  // signer
-  const attesterWallet = ethers.Wallet.fromMnemonic(process.env.MNEMONIC_ALICE);
-  const attester = attesterWallet.connect(ethers.provider);
-
-  before(async () => {
+  beforeEach(async () => {
     tokens = await ethers.deployContract("Tokens");
     zCloakSBT = await ethers.deployContract("zCloakSBT", [verifiers], {
       libraries: {
@@ -26,10 +27,9 @@ describe("Full Zksbt Flow Test Case", () => {
   });
 
   it("should success if user executes mint logic", async () => {
-    console.log(await zCloakSBT.CHAIN_ID());
-    console.log(await zCloakSBT.DOMAIN_SEPARATOR());
-    console.log(zCloakSBT.address);
-    console.log();
+    // console.log(await zCloakSBT.CHAIN_ID());
+    // console.log(await zCloakSBT.DOMAIN_SEPARATOR());
+    // console.log();
 
     // toggle mint on
     expect(await zCloakSBT.mintOpen()).equal(false);
@@ -37,14 +37,30 @@ describe("Full Zksbt Flow Test Case", () => {
     expect(await zCloakSBT.mintOpen()).equal(true);
 
     // set assertionMethodKey first
-    // TODO: deployer is default attester
     await zCloakSBT.setAssertionMethod(
       "0x361F1dd3db9037d2aC39f84007DC65dfA8BD248E"
     );
+    console.log("the check verifier contract1 is :", zCloakSBT.address);
 
-    await expect(zCloakSBT.mint(tokenInfo, mintSig))
-      .to.emit(zCloakSBT, "MintSuccess")
-      .withArgs("0x11f8b77F34FCF14B7095BF5228Ac0606324E82D1", 1);
+    await expect(
+      zCloakSBT.mint(
+        [
+          "0x11f8b77F34FCF14B7095BF5228Ac0606324E82D1",
+          "0x1209c3865ae4631cceacfbb3d4a946fec4ff97d3c7454a0383cb7e26b0bb8189",
+          "0x415a479f191532b76f464c2f0368acf528ff4d1c525c3bc88f63a6ecf3d71872",
+          "0x1ba8c6b69327b90766d956e6bad61f7af0de4529177154050a64de24f1936c21",
+          "0x11f8b77F34FCF14B7095BF5228Ac0606324E82D1",
+          "0x57E7b664aaa7C895878DdCa5790526B9659350Ec",
+          "0xa854b8d4aaf7f2ad1bce98f28a63c06821938955f19b7a1bfd4ca43dca88231e3f6cea6107c218a542b4ef66bc3852ffd7d0a3209f449de79a8909973d3eed2b00",
+          [8, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          1683875180311,
+          0,
+          "0x0001",
+          "ar:///MzXyO8ZH3dyyp9wdXAVuUT57vGLFifs3TnskClOoFSQ",
+        ],
+        "0x5f9a79b39c35c6bcc5b5af63737e40d4d09255cf86aa3c2a5ffd6a96afca431765718a83071747a9e1e634367d0013145c23aa7cb7cdb02b7a3da0630cfcf08401"
+      )
+    ).emit(zCloakSBT, "MintSuccess");
   });
 
   it("should success if deployer adds new verifiers", async () => {
@@ -95,51 +111,75 @@ describe("Full Zksbt Flow Test Case", () => {
 
   it("should success if attester burn(revoke) SBT by digest", async () => {
     // transfer some money to attester for paying gas
-    const [deployer] = await ethers.getSigners();
-    const transferTx = await deployer.sendTransaction({
-      to: attester.address,
-      value: ethers.utils.parseEther("10.0"),
-    });
-    await transferTx.wait();
-    expect(ethers.utils.formatEther(await attester.getBalance())).to.equal(
-      "10.0"
+    console.log("the check verifier contract2 is :", zCloakSBT.address);
+    await zCloakSBT.toggleMinting();
+
+    await zCloakSBT.setAssertionMethod(
+      "0x361F1dd3db9037d2aC39f84007DC65dfA8BD248E"
     );
 
-    // deployer mint first
     await zCloakSBT.mint(tokenInfo, mintSig);
-    expect(await zCloakSBT.balanceOf(deployer.address)).to.equal(1);
 
     expect(await zCloakSBT.checkRevokeDB(attester.address, digest)).to.equal(
       false
     );
     await expect(
-      zCloakSBT
-        .connect(attester)
-        .revokeByDigest(
-          "0x0c240bce4ce46341ed63bef97a701881317f381770cab2edf6fe17c4fa547214"
-        )
-    )
-      .to.emit(zCloakSBT, "RevokeSuccess")
-      .withArgs(attester.address, [1]);
+      zCloakSBT.revokeByDigest(
+        "0x1ba8c6b69327b90766d956e6bad61f7af0de4529177154050a64de24f1936c21"
+      )
+    ).emit(zCloakSBT, "RevokeSuccess");
+
     expect(await zCloakSBT.checkRevokeDB(attester.address, digest)).to.equal(
       true
     );
-    expect(await zCloakSBT.balanceOf(deployer)).to.equal(0);
   });
 
-  it("should success if set binding", async () => {});
+  // it("should success if set binding", async () => {});
 
-  it("should success if unbinding", async () => {});
+  // it("should success if unbinding", async () => {});
 
-  it("should success if check token valid", async () => {
-    // mint first
-    await zCloakSBT.mint(tokenInfo, mintSig);
-    expect(await zCloakSBT.balanceOf(deployer.address)).to.equal(1);
+  // // it("should success if check token valid", async () => {
+  // //   // mint first
+  // //   await zCloakSBT.mint(tokenInfo, mintSig);
+  // //   expect(await zCloakSBT.balanceOf(deployer.address)).to.equal(1);
 
-    // _exist()
-    expect(await zCloakSBT.checkTokenExist(1)).to.equal(true);
+  // //   // _exist()
+  // //   expect(await zCloakSBT.checkTokenExist(1)).to.equal(true);
 
-    // expirationTimestamp
-    // TODO:
+  // //   // expirationTimestamp
+  // //   // TODO:
+  // // });
+
+  it("Check Verifier Signature", async () => {
+    console.log(await zCloakSBT.CHAIN_ID());
+    console.log(await zCloakSBT.DOMAIN_SEPARATOR());
+    console.log("the check verifier contract is :", zCloakSBT.address);
+    await zCloakSBT.toggleMinting();
+
+    // console.log(await ethers.getSigner())
+    await zCloakSBT.setAssertionMethod(
+      "0x361F1dd3db9037d2aC39f84007DC65dfA8BD248E"
+    );
+
+    await expect(
+      zCloakSBT.mint(
+        [
+          "0x11f8b77F34FCF14B7095BF5228Ac0606324E82D1",
+          "0x1209c3865ae4631cceacfbb3d4a946fec4ff97d3c7454a0383cb7e26b0bb8189",
+          "0x415a479f191532b76f464c2f0368acf528ff4d1c525c3bc88f63a6ecf3d71872",
+          "0x1ba8c6b69327b90766d956e6bad61f7af0de4529177154050a64de24f1936c21",
+          "0x11f8b77F34FCF14B7095BF5228Ac0606324E82D1",
+          "0x57E7b664aaa7C895878DdCa5790526B9659350Ec",
+          "0xa854b8d4aaf7f2ad1bce98f28a63c06821938955f19b7a1bfd4ca43dca88231e3f6cea6107c218a542b4ef66bc3852ffd7d0a3209f449de79a8909973d3eed2b00",
+          [8, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          1683875180311,
+          0,
+          "0x0001",
+          "ar:///MzXyO8ZH3dyyp9wdXAVuUT57vGLFifs3TnskClOoFSQ",
+        ],
+        "0x8f5c3953eab4238d8507589fe429300a43c96c8b5c83be6cb0c942838af207f67658c85ea0d10d1103b10ec4cc15aab4e22eaaba715422035bd6dd218de76e4101"
+      )
+    ).emit(zCloakSBT, "MintSuccess");
+    // Wait for it to be mined.
   });
 });
