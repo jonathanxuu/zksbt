@@ -126,6 +126,12 @@ STORAGE
             for ( uint i = 0; i < modifiedVerifiers.length; i++){
                 require(_verifierWhitelist[modifiedVerifiers[i]] == true, "Not in VerifierWhitelist");
                 _verifierWhitelist[modifiedVerifiers[i]] = false;
+                for (uint j = 0; j < _verifierWorkDB[modifiedVerifiers[i]].length; j++){
+                   if (_exists(_verifierWorkDB[modifiedVerifiers[i]][j])){
+                        super._burn(_verifierWorkDB[modifiedVerifiers[i]][j]);
+                    }    
+                }
+                _verifierWorkDB[modifiedVerifiers[i]] = new uint256[](0);
             } 
             emit VerifierWhiteListDelete(modifiedVerifiers);
 
@@ -218,7 +224,9 @@ STORAGE
 
         uint256[] memory revokeList = _digestConvertCollection[msg.sender][digest];
         for (uint i = 0; i < revokeList.length; i++){
-            super._burn(revokeList[i]);
+            if (_exists(revokeList[i])){
+                super._burn(revokeList[i]);
+            }             
             Tokens.TokenOnChain memory empty;
             _tokenDB[revokeList[i]] = empty;
         }
@@ -290,6 +298,12 @@ STORAGE
             revert NotSetKey();
         }
         _assertionMethodMapping[msg.sender] = address(0);
+    }
+
+    function checkAssertionMethod(
+        address addressToCheck
+    ) public view returns (address) {
+        return _assertionMethodMapping[addressToCheck];
     }
 
     /**
