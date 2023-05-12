@@ -161,14 +161,6 @@ STORAGE
             _onlyTokenID[tokenInfo.digest][tokenInfo.attester][tokenInfo.programHash][tokenInfo.ctype] = 0;
         }
 
-        
-        }
-
-
-        if (_onlyTokenID[tokenInfo.digest][tokenInfo.attester][tokenInfo.programHash][tokenInfo.ctype] != 0)
-        {
-        }
-
         // Make sure the VC issued by the attester is not revoked yet
         if (_revokeDB[tokenInfo.attester][tokenInfo.digest] == true) {
             revert DigestAlreadyRevoked();
