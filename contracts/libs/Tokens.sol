@@ -136,7 +136,7 @@ library Tokens {
         Token memory tokenDetail,
         bytes memory signature,
         bytes32 domain_separator
-    ) internal pure returns (bool) {
+    ) internal view returns (bool) {
         bytes32 structHash = keccak256(
             abi.encode(
                 MINT_TYPEHASH,

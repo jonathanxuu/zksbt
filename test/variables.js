@@ -1,0 +1,24 @@
+// prettier-ignore
+const tokenInfo = [
+  "0x11f8b77F34FCF14B7095BF5228Ac0606324E82D1",
+  "0x1209c3865ae4631cceacfbb3d4a946fec4ff97d3c7454a0383cb7e26b0bb8189",
+  "0x415a479f191532b76f464c2f0368acf528ff4d1c525c3bc88f63a6ecf3d71872",
+  "0x1ba8c6b69327b90766d956e6bad61f7af0de4529177154050a64de24f1936c21",
+  "0x11f8b77F34FCF14B7095BF5228Ac0606324E82D1",
+  "0x57E7b664aaa7C895878DdCa5790526B9659350Ec",
+  "0xa854b8d4aaf7f2ad1bce98f28a63c06821938955f19b7a1bfd4ca43dca88231e3f6cea6107c218a542b4ef66bc3852ffd7d0a3209f449de79a8909973d3eed2b00",
+  [8, 12, 0, 0, 0, 0, 0,
+    0,  0, 0, 0, 0, 0, 0,
+    0,  0, 0],
+  1683875180311,
+  0,
+  "0x0001",
+  "ar:///MzXyO8ZH3dyyp9wdXAVuUT57vGLFifs3TnskClOoFSQ"
+];
+
+const mintSig =
+  "0x4aece83dbecaafb631a686607f0d4b269f437dce79c215a32dd966b59596263a2a60a47bd324daf16c733f42b27a414158b60a286f4273d1d56c5dec879d906b01";
+module.exports = {
+  tokenInfo: tokenInfo,
+  mintSig: mintSig,
+};

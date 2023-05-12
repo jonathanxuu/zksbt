@@ -202,7 +202,6 @@ STORAGE
 
 
         // Add the tokenID to the digest collection, when revoke the digest, could burn all the tokenID related to that
-        // todo: to check the new id is added successfully
         _digestConvertCollection[tokenOnChainInfo.attester][tokenOnChainInfo.digest].push(id);
 
         emit MintSuccess(realRecipient, id);
@@ -217,10 +216,13 @@ STORAGE
             revert DigestAlreadyRevoked();
         }
 
-        _revokeDB[msg.sender][digest] == true;
+        _revokeDB[msg.sender][digest] = true;
+
         uint256[] memory revokeList = _digestConvertCollection[msg.sender][digest];
         for (uint i = 0; i < revokeList.length; i++){
             super._burn(revokeList[i]);
+            Tokens.TokenOnChain memory empty;
+            _tokenDB[revokeList[i]] = empty;
         }
         emit RevokeSuccess(msg.sender, revokeList);
     }
@@ -255,6 +257,8 @@ STORAGE
             uint256[] memory revokeList = _bindedSBT[bindingAddr][bindedAddr];
             for (uint i = 0; i < revokeList.length; i++){
                super._burn(revokeList[i]);
+               Tokens.TokenOnChain memory empty;
+                _tokenDB[revokeList[i]] = empty;
             }
 
             // set it to default
@@ -364,11 +368,15 @@ STORAGE
         require(
             // can only be mint by address `0` and can be (burn by) transfered to the opensea burn address
             from == address(0) ||
-                to == address(0x000000000000000000000000000000000000dEaD),
+                to == address(0x000000000000000000000000000000000000dEaD) ||
+                to == address(0x0000000000000000000000000000000000000000),
             "SOULBOUND: Non-Transferable"
         );
         require(batchSize == 1, "Can only mint/burn one at the same time");
-        if (to == address(0x000000000000000000000000000000000000dEaD)) {
+        if (
+            to == address(0x000000000000000000000000000000000000dEaD) ||
+            to == address(0x0000000000000000000000000000000000000000)
+        ) {
             Tokens.TokenOnChain memory empty;
             _tokenDB[firstTokenId] = empty;
         }
@@ -428,5 +436,30 @@ STORAGE
      */
     function _time() internal view returns (uint64) {
         return uint64(block.timestamp);
+    }
+
+    /////////////// TEST FUNCTIONS ///////////////
+    function checkVerifierWhitelist(
+        address verifier
+    ) public view returns (bool) {
+        return _verifierWhitelist[verifier];
+    }
+
+    function checkRevokeDB(
+        address attester,
+        bytes32 digest
+    ) public view returns (bool) {
+        return _revokeDB[attester][digest];
+    }
+
+    function checkDigestConvertCollection(
+        address attester,
+        bytes32 digest
+    ) public view returns (uint256[] memory) {
+        return _digestConvertCollection[attester][digest];
+    }
+
+    function checkTokenExist(uint256 tokenID) public view returns (bool) {
+        return _exists(tokenID);
     }
 }
