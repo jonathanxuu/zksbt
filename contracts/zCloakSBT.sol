@@ -450,4 +450,8 @@ STORAGE
     ) public view returns (uint256[] memory) {
         return _digestConvertCollection[attester][digest];
     }
+
+    function checkTokenExist(uint256 tokenID) public view returns (bool) {
+        return _exists(tokenID);
+    }
 }
