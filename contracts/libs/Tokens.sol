@@ -21,13 +21,13 @@ library Tokens {
     // length 78
     bytes constant BINDING_MESSAGE_PART_2 =
         bytes(
-            " for use. I am aware that: If someone maliciously claims it on behalf, did:zk:"
+            " for use.\n\n I am aware that:\n If someone maliciously claims it on behalf, did:zk:"
         );
 
     // length 116
     bytes constant BINDING_MESSAGE_PART_3 =
         bytes(
-            " will face corresponding legal risks. If the Ethereum address is changed, all on-chain zkID Cards will be destroyed."
+            " will face corresponding legal risks.\n If the Ethereum address is changed, all on-chain zkID Cards will be destroyed."
         );
 
     // length 42
@@ -35,14 +35,14 @@ library Tokens {
         bytes(" will accept the zkID Card sent by did:zk:");
 
     // the length of the CredentialVersionedDigest, which likes CredentialVersionedDigest0x00011b32b6e54e4420cfaf2feecdc0a15dc3fc0a7681687123a0f8cb348b451c2989
-    // length 57, 25+ 2 + 32 = 59
+    // length 59, 25+ 2 + 32 = 59
     bytes2 constant EIP191_CRE_VERSION_DIGEST_LEN_V1 = 0x3539;
 
-    // length 302, 7 + 20 + 41 + 20 + 78 +20 + 116 = 302
-    bytes3 constant BINDING_MESSAGE_LEN = 0x333032;
+    // length 372, 7 + 42 + 41 + 42 + 78 + 42 + 116 + 4 = 368
+    bytes3 constant BINDING_MESSAGE_LEN = 0x333732;
 
-    // length 82, 20 + 42 + 20 = 82
-    bytes2 constant BINDED_MESSAGE_LEN = 0x3832;
+    // length 126, 42 + 42 + 42 = 126
+    bytes3 constant BINDED_MESSAGE_LEN = 0x313236;
 
     bytes32 public constant MINT_TYPEHASH =
         keccak256(
@@ -174,11 +174,11 @@ library Tokens {
                 EIP191_VERSION_E_HEADER,
                 BINDING_MESSAGE_LEN,
                 DID_ZK_PREFIX,
-                abi.encodePacked(bindingAddress),
+                abi.encodePacked("0x", _getChecksum(bindingAddress)),
                 BINDING_MESSAGE_PART_1,
-                abi.encodePacked(bindedAddress),
+                abi.encodePacked("0x", _getChecksum(bindedAddress)),
                 BINDING_MESSAGE_PART_2,
-                abi.encodePacked(bindingAddress),
+                abi.encodePacked("0x", _getChecksum(bindingAddress)),
                 BINDING_MESSAGE_PART_3
             )
         );
@@ -187,9 +187,9 @@ library Tokens {
                 bytes1(0x19),
                 EIP191_VERSION_E_HEADER,
                 BINDED_MESSAGE_LEN,
-                abi.encodePacked(bindedAddress),
+                abi.encodePacked("0x", _getChecksum(bindedAddress)),
                 BINDED_MESSAGE,
-                abi.encodePacked(bindingAddress)
+                abi.encodePacked("0x", _getChecksum(bindingAddress))
             )
         );
 
@@ -238,5 +238,138 @@ library Tokens {
             // solium-disable-next-line arg-overflow
             return ecrecover(hash, v, r, s);
         }
+    }
+
+    /**
+     * @dev Get a checksummed string hex representation of an account address.
+     * @param account address The account to get the checksum for.
+     */
+    function _getChecksum(
+        address account
+    ) internal pure returns (string memory accountChecksum) {
+        // call internal function for converting an account to a checksummed string.
+        return _toChecksumString(account);
+    }
+
+    function _toChecksumString(
+        address account
+    ) internal pure returns (string memory asciiString) {
+        // convert the account argument from address to bytes.
+        bytes20 data = bytes20(account);
+
+        // create an in-memory fixed-size bytes array.
+        bytes memory asciiBytes = new bytes(40);
+
+        // declare variable types.
+        uint8 b;
+        uint8 leftNibble;
+        uint8 rightNibble;
+        bool leftCaps;
+        bool rightCaps;
+        uint8 asciiOffset;
+
+        // get the capitalized characters in the actual checksum.
+        bool[40] memory caps = _toChecksumCapsFlags(account);
+
+        // iterate over bytes, processing left and right nibble in each iteration.
+        for (uint256 i = 0; i < data.length; i++) {
+            // locate the byte and extract each nibble.
+            b = uint8(uint160(data) / (2 ** (8 * (19 - i))));
+            leftNibble = b / 16;
+            rightNibble = b - 16 * leftNibble;
+
+            // locate and extract each capitalization status.
+            leftCaps = caps[2 * i];
+            rightCaps = caps[2 * i + 1];
+
+            // get the offset from nibble value to ascii character for left nibble.
+            asciiOffset = _getAsciiOffset(leftNibble, leftCaps);
+
+            // add the converted character to the byte array.
+            asciiBytes[2 * i] = bytes1(leftNibble + asciiOffset);
+
+            // get the offset from nibble value to ascii character for right nibble.
+            asciiOffset = _getAsciiOffset(rightNibble, rightCaps);
+
+            // add the converted character to the byte array.
+            asciiBytes[2 * i + 1] = bytes1(rightNibble + asciiOffset);
+        }
+
+        return string(asciiBytes);
+    }
+
+    function _toChecksumCapsFlags(
+        address account
+    ) internal pure returns (bool[40] memory characterCapitalized) {
+        // convert the address to bytes.
+        bytes20 a = bytes20(account);
+
+        // hash the address (used to calculate checksum).
+        bytes32 b = keccak256(abi.encodePacked(_toAsciiString(a)));
+
+        // declare variable types.
+        uint8 leftNibbleAddress;
+        uint8 rightNibbleAddress;
+        uint8 leftNibbleHash;
+        uint8 rightNibbleHash;
+
+        // iterate over bytes, processing left and right nibble in each iteration.
+        for (uint256 i; i < a.length; i++) {
+            // locate the byte and extract each nibble for the address and the hash.
+            rightNibbleAddress = uint8(a[i]) % 16;
+            leftNibbleAddress = (uint8(a[i]) - rightNibbleAddress) / 16;
+            rightNibbleHash = uint8(b[i]) % 16;
+            leftNibbleHash = (uint8(b[i]) - rightNibbleHash) / 16;
+
+            characterCapitalized[2 * i] = (leftNibbleAddress > 9 &&
+                leftNibbleHash > 7);
+            characterCapitalized[2 * i + 1] = (rightNibbleAddress > 9 &&
+                rightNibbleHash > 7);
+        }
+    }
+
+    function _getAsciiOffset(
+        uint8 nibble,
+        bool caps
+    ) internal pure returns (uint8 offset) {
+        // to convert to ascii characters, add 48 to 0-9, 55 to A-F, & 87 to a-f.
+        if (nibble < 10) {
+            offset = 48;
+        } else if (caps) {
+            offset = 55;
+        } else {
+            offset = 87;
+        }
+    }
+
+    // based on https://ethereum.stackexchange.com/a/56499/48410
+    function _toAsciiString(
+        bytes20 data
+    ) internal pure returns (string memory asciiString) {
+        // create an in-memory fixed-size bytes array.
+        bytes memory asciiBytes = new bytes(40);
+
+        // declare variable types.
+        uint8 b;
+        uint8 leftNibble;
+        uint8 rightNibble;
+
+        // iterate over bytes, processing left and right nibble in each iteration.
+        for (uint256 i = 0; i < data.length; i++) {
+            // locate the byte and extract each nibble.
+            b = uint8(uint160(data) / (2 ** (8 * (19 - i))));
+            leftNibble = b / 16;
+            rightNibble = b - 16 * leftNibble;
+
+            // to convert to ascii characters, add 48 to 0-9 and 87 to a-f.
+            asciiBytes[2 * i] = bytes1(
+                leftNibble + (leftNibble < 10 ? 48 : 87)
+            );
+            asciiBytes[2 * i + 1] = bytes1(
+                rightNibble + (rightNibble < 10 ? 48 : 87)
+            );
+        }
+
+        return string(asciiBytes);
     }
 }
