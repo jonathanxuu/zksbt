@@ -38,7 +38,7 @@ library Tokens {
     // length 59, 25+ 2 + 32 = 59
     bytes2 constant EIP191_CRE_VERSION_DIGEST_LEN_V1 = 0x3539;
 
-    // length 372, 7 + 42 + 41 + 42 + 78 + 42 + 116 + 4 = 368
+    // length 372, 7 + 42 + 41 + 42 + 78 + 42 + 116 + 4 = 372
     bytes3 constant BINDING_MESSAGE_LEN = 0x333732;
 
     // length 126, 42 + 42 + 42 = 126

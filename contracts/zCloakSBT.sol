@@ -455,7 +455,8 @@ STORAGE
      * current block time.
      */
     function _time() internal view returns (uint64) {
-        return uint64(block.timestamp);
+        // return the milsec of the current timestamp
+        return uint64(block.timestamp) * 1000;
     }
 
     /////////////// TEST FUNCTIONS ///////////////

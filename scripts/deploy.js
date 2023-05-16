@@ -12,7 +12,7 @@ const main = async () => {
             Tokens: libTokensObj.address,
         }
     });
-    const nftContract = await nftContractFactory.deploy(["0x11f8b77F34FCF14B7095BF5228Ac0606324E82D1"]);
+    const nftContract = await nftContractFactory.deploy(["0xC2BADDbf6DCeDA9b68638a9de84063c1E0ee4350"]);
     await nftContract.deployed();
     console.log("Contract deployed to:", nftContract.address);
   
