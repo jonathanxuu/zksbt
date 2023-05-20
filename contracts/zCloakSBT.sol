@@ -499,4 +499,23 @@ STORAGE
     function checkTokenExist(uint256 tokenID) public view returns (bool) {
         return _exists(tokenID);
     }
+
+    function checkAssertionMethodMapping(
+        address attesterControllerKey
+    ) public view returns (address) {
+        return _assertionMethodMapping[attesterControllerKey];
+    }
+
+    function getBlankAddress() public pure returns (address) {
+        return address(0);
+    }
+
+    function checkOnlyTokenID(
+        bytes32 digest,
+        address attester,
+        bytes32 programHash,
+        bytes32 ctype
+    ) public view returns (uint256) {
+        return _onlyTokenID[digest][attester][programHash][ctype];
+    }
 }
