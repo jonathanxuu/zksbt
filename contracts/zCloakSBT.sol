@@ -500,12 +500,6 @@ STORAGE
         return _exists(tokenID);
     }
 
-    function checkAssertionMethodMapping(
-        address attesterControllerKey
-    ) public view returns (address) {
-        return _assertionMethodMapping[attesterControllerKey];
-    }
-
     function getBlankAddress() public pure returns (address) {
         return address(0);
     }

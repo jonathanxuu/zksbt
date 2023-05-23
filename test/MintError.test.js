@@ -59,9 +59,9 @@ describe("Mint Logic Error Test Case", () => {
       "0xab6d5133e557647f446cc49e44f3bd094190f3f26d79f9449831cde37b8fa2b2705961a16dbcb1930f6e23b268a894f395615dcc9363cf57047b9a7a2a390e2501";
     await zCloakSBT.toggleMinting();
     await zCloakSBT.setAssertionMethod(assertionMethod);
-    expect(
-      await zCloakSBT.checkAssertionMethodMapping(attester.address)
-    ).to.equal(assertionMethod);
+    expect(await zCloakSBT.checkAssertionMethod(attester.address)).to.equal(
+      assertionMethod
+    );
     await zCloakSBT.mint(tokenInfo, verifierSignature);
   });
 
@@ -112,9 +112,9 @@ describe("Mint Logic Error Test Case", () => {
     expect(await zCloakSBT.mintOpen()).to.equal(true);
 
     // attester not set assertionMethod
-    expect(
-      await zCloakSBT.checkAssertionMethodMapping(attester.address)
-    ).to.equal(await zCloakSBT.getBlankAddress());
+    expect(await zCloakSBT.checkAssertionMethod(attester.address)).to.equal(
+      await zCloakSBT.getBlankAddress()
+    );
 
     const verifierSignature =
       "0xb99e2b513605f3f7dc87df74b93f7d698630e78e0b6c9869d12e868d173047f433f7f16dfc6c17882bbd6de488680c696f85a63f4d04fd3ba3ed570e54f7c5ff01";
