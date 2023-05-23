@@ -99,7 +99,7 @@ STORAGE
 
     constructor(
         address[] memory _trustedVerifiers
-    ) ERC721("zCloak SBT", "zkSBT") {
+    ) ERC721("zCloak SBT", "zk-SBT") {
         INITIAL_CHAIN_ID = block.chainid;
         INITIAL_DOMAIN_SEPARATOR = computeDomainSeparator();
         for (uint i = 0; i < _trustedVerifiers.length; i++) {
@@ -293,7 +293,7 @@ STORAGE
      * @notice Used to remove the key ralation stored on chain
      */
     //prettier-ignore
-    function removeAssertionMehod() public payable {
+    function removeAssertionMethod() public payable {
         if (_assertionMethodMapping[msg.sender] == address(0)) {
             revert NotSetKey();
         }

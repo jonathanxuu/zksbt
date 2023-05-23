@@ -18,16 +18,16 @@ library Tokens {
     bytes constant BINDING_MESSAGE_PART_1 =
         bytes(" will transfer the on-chain zkID Card to ");
 
-    // length 78
+    // length 81
     bytes constant BINDING_MESSAGE_PART_2 =
         bytes(
             " for use.\n\n I am aware that:\n If someone maliciously claims it on behalf, did:zk:"
         );
 
-    // length 116
+    // length 126
     bytes constant BINDING_MESSAGE_PART_3 =
         bytes(
-            " will face corresponding legal risks.\n If the Ethereum address is changed, all on-chain zkID Cards will be destroyed."
+            " will face corresponding legal consequences.\n If the Ethereum address is changed, all on-chain zklD Cards will be invalidated."
         );
 
     // length 42
@@ -38,8 +38,8 @@ library Tokens {
     // length 59, 25+ 2 + 32 = 59
     bytes2 constant EIP191_CRE_VERSION_DIGEST_LEN_V1 = 0x3539;
 
-    // length 372, 7 + 42 + 41 + 42 + 78 + 42 + 116 + 4 = 372
-    bytes3 constant BINDING_MESSAGE_LEN = 0x333732;
+    // length 381, 7 + 42 + 41 + 42 + 81 + 42 + 126  = 381
+    bytes3 constant BINDING_MESSAGE_LEN = 0x333831;
 
     // length 126, 42 + 42 + 42 = 126
     bytes3 constant BINDED_MESSAGE_LEN = 0x313236;
