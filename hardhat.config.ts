@@ -10,8 +10,19 @@ setGlobalDispatcher(proxyAgent);
 module.exports = {
   etherscan: {
     apiKey: {
-      optimisticGoerli: process.env.ETHSCAN_API_KEY
-    }
+      optimisticGoerli: process.env.ETHSCAN_API_KEY,
+      "base-goerli": "PLACEHOLDER_STRING"
+    },
+    customChains: [
+      {
+        network: "base-goerli",
+        chainId: 84531,
+        urls: {
+         apiURL: "https://api-goerli.basescan.org/api",
+         browserURL: "https://goerli.basescan.org"
+        }
+      }
+    ]
   },
   solidity: {
     version: "0.8.17",
@@ -23,6 +34,13 @@ module.exports = {
     },
   },
   networks: {
+    'base-goerli': {
+      allowUnlimitedContractSize: true,
+      url: 'https://shy-alien-sailboat.base-goerli.discover.quiknode.pro/a3ec1f5083aba55ae5627e9266458017f9d3f29b/',
+      chainId: 84531,
+      live: true,
+      accounts: [process.env.GOERLI_PRIVATE_KEY],
+    },
     optimisticGoerli: {
       allowUnlimitedContractSize: true,
       // url: process.env.QUICKNODE_API_KEY_URL,

@@ -72,7 +72,17 @@ STORAGE
  EVENTS
  //////////////////////////////////////////////////////////////*/
 
-    event MintSuccess(address indexed recipent, uint256 indexed tokenID);
+    event MintSuccess(
+        uint256 indexed tokenID,
+        bytes32 programHash,
+        uint64 createdTime,
+        uint64 expiredTime,
+        address indexed attester,
+        address claimer,
+        address indexed recipient,
+        bytes32 ctypeHash,
+        string sbtLink
+    );
     event RevokeSuccess(address indexed attester, uint256[] tokenIDList);
     event BindingSetSuccess(
         address indexed bindingAddr,
@@ -208,7 +218,7 @@ STORAGE
         // Add the tokenID to the digest collection, when revoke the digest, could burn all the tokenID related to that
         _digestConvertCollection[tokenOnChainInfo.attester][tokenOnChainInfo.digest].push(id);
 
-        emit MintSuccess(realRecipient, id);
+        emit MintSuccess(id, tokenOnChainInfo.programHash, _time(), tokenOnChainInfo.expirationTimestamp, tokenOnChainInfo.attester, tokenInfo.recipient, realRecipient, tokenOnChainInfo.ctype, tokenOnChainInfo.sbtLink);
     }
 
     /**
@@ -356,7 +366,7 @@ STORAGE
 
     function contractURI() external pure returns (string memory) {
         string
-            memory collectionImage = "ar://MzXyO8ZH3dyyp9wdXAVuUT57vGLFifs3TnskClOoFSQ";
+            memory collectionImage = "ar://7kij1nQzLRYAr81vDF3szWkQj-tzhwuw-QzVAUJwxPg";
         string memory json = string.concat(
             '{"name": "zCloak SBT","description":"This is a zkSBT collection launched by zCloak Network which can be used to represent ones personal identity without revealing their confidential information","image":"',
             collectionImage,
@@ -464,6 +474,11 @@ STORAGE
         address verifier
     ) public view returns (bool) {
         return _verifierWhitelist[verifier];
+    }
+    function checkTokenInfo(
+        uint256 tokenID
+    ) public view returns (Tokens.TokenOnChain memory) {
+        return _tokenDB[tokenID];
     }
 
     function checkRevokeDB(
