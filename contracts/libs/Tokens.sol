@@ -97,6 +97,23 @@ library Tokens {
         tokenOnchain.mintTimestamp = time;
     }
 
+    function changeRecipient(
+        TokenOnChain memory originTokenOnChain,
+        address realRecipient
+    ) public pure returns (TokenOnChain memory tokenOnchain){
+        tokenOnchain.recipient = realRecipient;
+        tokenOnchain.ctype = originTokenOnChain.ctype;
+        tokenOnchain.programHash = originTokenOnChain.programHash;
+        tokenOnchain.digest = originTokenOnChain.digest;
+        tokenOnchain.attester = originTokenOnChain.attester;
+        tokenOnchain.output = originTokenOnChain.output;
+        tokenOnchain.issuanceTimestamp = originTokenOnChain.issuanceTimestamp;
+        tokenOnchain.expirationTimestamp = originTokenOnChain.expirationTimestamp;
+        tokenOnchain.vcVersion = originTokenOnChain.vcVersion;
+        tokenOnchain.sbtLink = originTokenOnChain.sbtLink;
+        tokenOnchain.mintTimestamp = originTokenOnChain.mintTimestamp;
+    }
+
     function getRecipient(
         Token memory tokenDetail
     ) public pure returns (address) {

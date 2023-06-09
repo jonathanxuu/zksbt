@@ -11,9 +11,19 @@ module.exports = {
   etherscan: {
     apiKey: {
       optimisticGoerli: process.env.ETHSCAN_API_KEY,
-      "base-goerli": "PLACEHOLDER_STRING"
+      "base-goerli": process.env.BASEAPI,
+      linea: process.env.ETHSCAN_API_KEY2,
+
     },
     customChains: [
+      {
+        network: "linea",
+        chainId: 59140,
+        urls: {
+          apiURL: "https://explorer.goerli.linea.build/api",
+          browserURL: "https://explorer.goerli.linea.build/"
+        }
+      },
       {
         network: "base-goerli",
         chainId: 84531,
@@ -22,6 +32,7 @@ module.exports = {
          browserURL: "https://goerli.basescan.org"
         }
       }
+
     ]
   },
   solidity: {
@@ -34,6 +45,10 @@ module.exports = {
     },
   },
   networks: {
+    linea: {
+      url: `https://rpc.goerli.linea.build/`,
+      accounts: [process.env.GOERLI_PRIVATE_KEY],
+    },
     'base-goerli': {
       allowUnlimitedContractSize: true,
       url: 'https://shy-alien-sailboat.base-goerli.discover.quiknode.pro/a3ec1f5083aba55ae5627e9266458017f9d3f29b/',

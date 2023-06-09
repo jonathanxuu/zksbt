@@ -61,6 +61,12 @@ STORAGE
     // A storage for the attester to revoke certain VC, thus the SBT should be burn therefore(if not mint yet, forbid its mint in the future) (attester, digest)
     mapping(address => mapping(bytes32 => bool)) private _revokeDB;
 
+    // Record holder's owned tokenID history
+    mapping(address => uint256[]) private _holderTokenHistoryDB;
+
+    // Record token's Verifier
+    mapping(uint256 => address) private _tokenVerifier;
+
     // Check whether the address owns certain SBT, address realRecipient, address attester, bytes32 programHash, bytes32 ctype
     mapping(address => mapping(address => mapping(bytes32 => mapping(bytes32 => uint256))))
         private _certainSbtDB;
@@ -73,6 +79,17 @@ STORAGE
  //////////////////////////////////////////////////////////////*/
 
     event MintSuccess(
+        uint256 indexed tokenID,
+        bytes32 programHash,
+        uint64 createdTime,
+        uint64 expiredTime,
+        address indexed attester,
+        address claimer,
+        address indexed recipient,
+        bytes32 ctypeHash,
+        string sbtLink
+    );
+    event BindingTransferTokenSuccess(
         uint256 indexed tokenID,
         bytes32 programHash,
         uint64 createdTime,
@@ -207,7 +224,7 @@ STORAGE
         _mint(realRecipient, id);
         _tokenDB[id] = tokenOnChainInfo;
         
-        
+        _tokenVerifier[id] = tokenInfo.verifier; 
         // Push the tokenID to the work of the verifier
         _verifierWorkDB[tokenInfo.verifier].push(id);
         _onlyTokenID[tokenOnChainInfo.digest][tokenOnChainInfo.attester][tokenOnChainInfo.programHash][tokenOnChainInfo.ctype] = id;
@@ -254,6 +271,29 @@ STORAGE
         }
         if (Tokens.verifyBindingSignature(bindingAddr, bindedAddr, bindingSignature, bindedSignature) == true) {
             _bindingDB[bindingAddr] = bindedAddr;
+            uint256[] memory bindingAddrTokenList = _holderTokenHistoryDB[bindingAddr];
+            if (bindingAddrTokenList.length != 0){
+                for(uint i = 0; i < bindingAddrTokenList.length; i++){
+                    Tokens.TokenOnChain memory currentToken = _tokenDB[bindingAddrTokenList[i]];
+                    _burn(bindingAddrTokenList[i]);
+                    delete _tokenDB[bindingAddrTokenList[i]];
+                    
+                    _tokenIds.increment();
+                    uint256 id = _tokenIds.current();
+
+                    Tokens.TokenOnChain memory newToken = Tokens.changeRecipient(currentToken, bindedAddr);
+                    _tokenDB[id] = newToken;
+                    _verifierWorkDB[_tokenVerifier[bindingAddrTokenList[i]]].push(id);
+                    _tokenVerifier[id] = _tokenVerifier[bindingAddrTokenList[i]];
+                    _onlyTokenID[newToken.digest][newToken.attester][newToken.programHash][newToken.ctype] = id;
+                    _digestConvertCollection[newToken.attester][newToken.digest].push(id);
+
+                    delete _tokenVerifier[bindingAddrTokenList[i]];
+                    delete _certainSbtDB[currentToken.recipient][currentToken.attester][currentToken.programHash][currentToken.ctype];
+
+                    emit BindingTransferTokenSuccess(id, currentToken.programHash, _time(), currentToken.expirationTimestamp, currentToken.attester, bindingAddr, bindedAddr, currentToken.ctype, currentToken.sbtLink);
+                }
+            }
             emit BindingSetSuccess(bindingAddr, bindedAddr);
         } else {
             revert BindingSignatureInvalid();
@@ -275,13 +315,12 @@ STORAGE
                 if (_exists(revokeList[i])){
                     super._burn(revokeList[i]);
                 } 
-                Tokens.TokenOnChain memory empty;
-                _tokenDB[revokeList[i]] = empty;
+                delete _tokenDB[revokeList[i]];
             }
 
             // set it to default
-            _bindingDB[bindingAddr] = address(0);
-            _bindedSBT[bindingAddr][bindedAddr] = new uint256[](0);
+            delete _bindingDB[bindingAddr];
+            delete _bindedSBT[bindingAddr][bindedAddr];
             emit UnBindingSuccess(bindingAddr, bindedAddr);
         } else {
             revert UnBindingLimited();
@@ -355,13 +394,24 @@ STORAGE
     function tokenURI(uint256 id) public view override returns (string memory) {
         if (!_exists(id)) revert TokenNotExist();
         string memory sbtImage = _tokenDB[id].sbtLink;
-        string memory json = string.concat(
-            '{"image":"',
-            sbtImage,
-            '"}'
-        );
+        // string memory json = string.concat(
+        //     '{"image":"',
+        //     sbtImage,
+        //     '"}'
+        // );
         // todo: dertermine whether need's title and description for each SBT.
-        return string.concat("data:application/json;utf8,", json);
+        return string.concat('{"name": "zCloakSBT","image":"', sbtImage, '"}');
+    }
+
+    /**
+     * @dev Base URI for computing {tokenURI}. If set, the resulting URI for each
+     * token will be the concatenation of the `baseURI` and the `tokenId`. Empty
+     * by default, it can be overridden in child contracts.
+     */
+    function _baseURI(
+        uint256 tokenId
+    ) internal view virtual returns (string memory) {
+        return _tokenDB[tokenId].sbtLink;
     }
 
     function contractURI() external pure returns (string memory) {
@@ -475,6 +525,7 @@ STORAGE
     ) public view returns (bool) {
         return _verifierWhitelist[verifier];
     }
+
     function checkTokenInfo(
         uint256 tokenID
     ) public view returns (Tokens.TokenOnChain memory) {
