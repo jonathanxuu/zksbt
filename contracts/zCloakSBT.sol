@@ -54,8 +54,8 @@ STORAGE
     // Record the tokenID mint by the verifier, is the verifier is dishonest, burn all SBTs handled by the verifier
     mapping(address => uint256[]) private _verifierWorkDB;
 
-    // Avoid mint multiple SBT of the same tokenInfo, we need to add a registry to flag that（digest, attester, programHash, ctype)=> tokenID
-    mapping(bytes32 => mapping(address => mapping(bytes32 => mapping(bytes32 => uint256))))
+    // Avoid mint multiple SBT of the same tokenInfo, we need to add a registry to flag that（digest, attester, programHash, publicInputHash, ctype)=> tokenID
+    mapping(bytes32 => mapping(address => mapping(bytes32 => mapping(bytes32 => mapping(bytes32 => uint256)))))
         private _onlyTokenID;
 
     // A storage for the attester to revoke certain VC, thus the SBT should be burn therefore(if not mint yet, forbid its mint in the future) (attester, digest)
@@ -67,8 +67,8 @@ STORAGE
     // Record token's Verifier
     mapping(uint256 => address) private _tokenVerifier;
 
-    // Check whether the address owns certain SBT, address realRecipient, address attester, bytes32 programHash, bytes32 ctype
-    mapping(address => mapping(address => mapping(bytes32 => mapping(bytes32 => uint256))))
+    // Check whether the address owns certain SBT, address realRecipient, address attester, bytes32 programHash, publicInputHash, bytes32 ctype => tokenID
+    mapping(address => mapping(address => mapping(bytes32 => mapping(bytes32 => mapping(bytes32 => uint256)))))
         private _certainSbtDB;
     // Record all SBT(tokenID) minted by the specific digest (attester, digest) => tokenID[]
     mapping(address => mapping(bytes32 => uint256[]))
@@ -81,6 +81,8 @@ STORAGE
     event MintSuccess(
         uint256 indexed tokenID,
         bytes32 programHash,
+        uint64[] publicInput,
+        uint64[] output,
         uint64 createdTime,
         uint64 expiredTime,
         address indexed attester,
@@ -156,6 +158,7 @@ STORAGE
                 for (uint j = 0; j < _verifierWorkDB[modifiedVerifiers[i]].length; j++){
                    if (_exists(_verifierWorkDB[modifiedVerifiers[i]][j])){
                         super._burn(_verifierWorkDB[modifiedVerifiers[i]][j]);
+                        delete _tokenDB[_verifierWorkDB[modifiedVerifiers[i]][j]];
                     }    
                 }
                 _verifierWorkDB[modifiedVerifiers[i]] = new uint256[](0);
@@ -183,13 +186,16 @@ STORAGE
         }
 
         // Make sure the SBT hasn't been mint yet
-        uint256 maybe_mint_id = _onlyTokenID[tokenInfo.digest][tokenInfo.attester][tokenInfo.programHash][tokenInfo.ctype];
+        bytes32 publicInputHash = keccak256(abi.encodePacked(tokenInfo.publicInput));
+
+        uint256 maybe_mint_id =  _onlyTokenID[tokenInfo.digest][tokenInfo.attester][tokenInfo.programHash][publicInputHash][tokenInfo.ctype];
+
         if (maybe_mint_id != 0 && checkTokenValid(maybe_mint_id)){
             revert AlreadyMint();
         }
         // mint before, but the token is burned (not revoked by the attester), can be mint again
         if (maybe_mint_id != 0 && !checkTokenValid(maybe_mint_id)){
-            _onlyTokenID[tokenInfo.digest][tokenInfo.attester][tokenInfo.programHash][tokenInfo.ctype] = 0;
+            _onlyTokenID[tokenInfo.digest][tokenInfo.attester][tokenInfo.programHash][publicInputHash][tokenInfo.ctype] = 0;
         }
 
         // Make sure the VC issued by the attester is not revoked yet
@@ -215,7 +221,6 @@ STORAGE
              realRecipient = Tokens.getRecipient(tokenInfo);
         } else {
              realRecipient = _bindingDB[tokenInfo.recipient];
-             // todo  check the push is success
              _bindedSBT[Tokens.getRecipient(tokenInfo)][realRecipient].push(id);
         }
 
@@ -227,15 +232,16 @@ STORAGE
         _tokenVerifier[id] = tokenInfo.verifier; 
         // Push the tokenID to the work of the verifier
         _verifierWorkDB[tokenInfo.verifier].push(id);
-        _onlyTokenID[tokenOnChainInfo.digest][tokenOnChainInfo.attester][tokenOnChainInfo.programHash][tokenOnChainInfo.ctype] = id;
-        // userAddr, address attester, bytes32 programHash, bytes32 ctype
-        _certainSbtDB[realRecipient][tokenOnChainInfo.attester][tokenOnChainInfo.programHash][tokenOnChainInfo.ctype] = id;
 
+    
+        _onlyTokenID[tokenOnChainInfo.digest][tokenOnChainInfo.attester][tokenOnChainInfo.programHash][publicInputHash][tokenOnChainInfo.ctype] = id;
+        // userAddr, address attester, bytes32 programHash, bytes32 ctype
+        _certainSbtDB[realRecipient][tokenOnChainInfo.attester][tokenOnChainInfo.programHash][publicInputHash][tokenOnChainInfo.ctype] = id;
 
         // Add the tokenID to the digest collection, when revoke the digest, could burn all the tokenID related to that
         _digestConvertCollection[tokenOnChainInfo.attester][tokenOnChainInfo.digest].push(id);
 
-        emit MintSuccess(id, tokenOnChainInfo.programHash, _time(), tokenOnChainInfo.expirationTimestamp, tokenOnChainInfo.attester, tokenInfo.recipient, realRecipient, tokenOnChainInfo.ctype, tokenOnChainInfo.sbtLink);
+        emit MintSuccess(id, tokenOnChainInfo.programHash, tokenOnChainInfo.publicInput, tokenOnChainInfo.output, _time(), tokenOnChainInfo.expirationTimestamp, tokenOnChainInfo.attester, tokenInfo.recipient, realRecipient, tokenOnChainInfo.ctype, tokenOnChainInfo.sbtLink);
     }
 
     /**
@@ -253,9 +259,8 @@ STORAGE
         for (uint i = 0; i < revokeList.length; i++){
             if (_exists(revokeList[i])){
                 super._burn(revokeList[i]);
-            }             
-            Tokens.TokenOnChain memory empty;
-            _tokenDB[revokeList[i]] = empty;
+            }
+            delete _tokenDB[revokeList[i]];
         }
         emit RevokeSuccess(msg.sender, revokeList);
     }
@@ -285,11 +290,14 @@ STORAGE
                     _tokenDB[id] = newToken;
                     _verifierWorkDB[_tokenVerifier[bindingAddrTokenList[i]]].push(id);
                     _tokenVerifier[id] = _tokenVerifier[bindingAddrTokenList[i]];
-                    _onlyTokenID[newToken.digest][newToken.attester][newToken.programHash][newToken.ctype] = id;
+
+                    bytes32 publicInputHash = keccak256(abi.encodePacked(newToken.publicInput));
+
+                    _onlyTokenID[newToken.digest][newToken.attester][newToken.programHash][publicInputHash][newToken.ctype] = id;
                     _digestConvertCollection[newToken.attester][newToken.digest].push(id);
 
                     delete _tokenVerifier[bindingAddrTokenList[i]];
-                    delete _certainSbtDB[currentToken.recipient][currentToken.attester][currentToken.programHash][currentToken.ctype];
+                    delete _certainSbtDB[currentToken.recipient][currentToken.attester][currentToken.programHash][publicInputHash][currentToken.ctype];
 
                     emit BindingTransferTokenSuccess(id, currentToken.programHash, _time(), currentToken.expirationTimestamp, currentToken.attester, bindingAddr, bindedAddr, currentToken.ctype, currentToken.sbtLink);
                 }
@@ -359,15 +367,15 @@ STORAGE
      * @notice Used to check whether the user owns a certain class of zkSBT with certain programHash, and whether it is valid at present.
      */
     //prettier-ignore
-    function checkSBTClassValid(address userAddr, address attester, bytes32 programHash, bytes32 ctype) public view returns (Tokens.TokenOnChain memory) {
-        uint256 tokenId = _certainSbtDB[userAddr][attester][programHash][ctype];
-        
+    function checkSBTClassValid(address userAddr, address attester, bytes32 programHash, uint64[] memory publicInput, bytes32 ctype) public view returns (Tokens.TokenOnChain memory) {
+        bytes32 publicInputHash = keccak256(abi.encodePacked(publicInput));
+        uint256 tokenId = _certainSbtDB[userAddr][attester][programHash][publicInputHash][ctype];
+       
         if (!checkTokenValid(tokenId)){
             revert TokenNotExist();
         }
         
         return _tokenDB[tokenId];
-        // todo: Need to code check logics
     }
 
     /**
@@ -574,8 +582,11 @@ STORAGE
         bytes32 digest,
         address attester,
         bytes32 programHash,
+        uint64[] memory publicInput,
         bytes32 ctype
     ) public view returns (uint256) {
-        return _onlyTokenID[digest][attester][programHash][ctype];
+        bytes32 publicInputHash = keccak256(abi.encodePacked(publicInput));
+        return
+            _onlyTokenID[digest][attester][programHash][publicInputHash][ctype];
     }
 }

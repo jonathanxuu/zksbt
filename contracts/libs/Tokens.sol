@@ -52,6 +52,7 @@ library Tokens {
         address recipient;
         bytes32 ctype;
         bytes32 programHash;
+        uint64[] publicInput;
         bytes32 digest;
         address verifier;
         address attester;
@@ -67,6 +68,7 @@ library Tokens {
         address recipient;
         bytes32 ctype;
         bytes32 programHash;
+        uint64[] publicInput;
         bytes32 digest;
         address attester;
         uint64[] output;
@@ -87,6 +89,7 @@ library Tokens {
         tokenOnchain.recipient = realRecipient;
         tokenOnchain.ctype = token.ctype;
         tokenOnchain.programHash = token.programHash;
+        tokenOnchain.publicInput = token.publicInput;
         tokenOnchain.digest = token.digest;
         tokenOnchain.attester = token.attester;
         tokenOnchain.output = token.output;
@@ -104,6 +107,7 @@ library Tokens {
         tokenOnchain.recipient = realRecipient;
         tokenOnchain.ctype = originTokenOnChain.ctype;
         tokenOnchain.programHash = originTokenOnChain.programHash;
+        tokenOnchain.publicInput = originTokenOnChain.publicInput;
         tokenOnchain.digest = originTokenOnChain.digest;
         tokenOnchain.attester = originTokenOnChain.attester;
         tokenOnchain.output = originTokenOnChain.output;
@@ -158,6 +162,7 @@ library Tokens {
                 tokenDetail.recipient,
                 tokenDetail.ctype,
                 tokenDetail.programHash,
+                keccak256(abi.encodePacked(tokenDetail.publicInput)),
                 tokenDetail.digest,
                 tokenDetail.verifier,
                 tokenDetail.attester,
