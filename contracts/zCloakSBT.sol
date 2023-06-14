@@ -25,6 +25,8 @@ error NotSetKey();
 error VCAlreadyExpired();
 error AttesterSignatureInvalid();
 error UnBindingLimited();
+error OnChainRecipientNotSet();
+error TokenNotValid();
 
 contract zCloakSBT is ERC721Enumerable, Ownable, ReentrancyGuard {
     using Counters for Counters.Counter;
@@ -81,6 +83,7 @@ STORAGE
     event MintSuccess(
         uint256 indexed tokenID,
         bytes32 programHash,
+        bytes32 digestHash,
         uint64[] publicInput,
         uint64[] output,
         uint64 createdTime,
@@ -102,7 +105,11 @@ STORAGE
         bytes32 ctypeHash,
         string sbtLink
     );
-    event RevokeSuccess(address indexed attester, uint256[] tokenIDList);
+    event RevokeSuccess(
+        address indexed attester,
+        bytes32 indexed digestHash,
+        uint256[] tokenIDList
+    );
     event BindingSetSuccess(
         address indexed bindingAddr,
         address indexed bindedAddr
@@ -113,6 +120,12 @@ STORAGE
     );
     event VerifierWhiteListAdd(address[] indexed verifiers);
     event VerifierWhiteListDelete(address[] indexed verifiers);
+    event VerifierInvalidToken(
+        address indexed verifier,
+        uint256 indexed tokenID
+    );
+    event UserBurnToken(address indexed user, uint256 indexed tokenID);
+    event UserUnBindBurn(address indexed user, uint256 indexed tokenID);
 
     /*///////////////////////////////////////////////////////////////
  EIP-712 STORAGE
@@ -158,6 +171,7 @@ STORAGE
                 for (uint j = 0; j < _verifierWorkDB[modifiedVerifiers[i]].length; j++){
                    if (_exists(_verifierWorkDB[modifiedVerifiers[i]][j])){
                         super._burn(_verifierWorkDB[modifiedVerifiers[i]][j]);
+                        emit VerifierInvalidToken(modifiedVerifiers[i], _verifierWorkDB[modifiedVerifiers[i]][j]);
                         delete _tokenDB[_verifierWorkDB[modifiedVerifiers[i]][j]];
                     }    
                 }
@@ -179,6 +193,10 @@ STORAGE
             revert VCAlreadyExpired();
         }
 
+        if (_bindingDB[tokenInfo.recipient] == address(0)){
+            revert OnChainRecipientNotSet();
+        }
+
         // check whether the signature is valid (assertionMethod)
         address attesterAssertionMethod = (_assertionMethodMapping[tokenInfo.attester] == address(0) ? tokenInfo.attester : _assertionMethodMapping[tokenInfo.attester]);
         if (Tokens.verifyAttesterSignature(attesterAssertionMethod, tokenInfo.attesterSignature, tokenInfo.digest, tokenInfo.vcVersion) == false) {
@@ -192,10 +210,6 @@ STORAGE
 
         if (maybe_mint_id != 0 && checkTokenValid(maybe_mint_id)){
             revert AlreadyMint();
-        }
-        // mint before, but the token is burned (not revoked by the attester), can be mint again
-        if (maybe_mint_id != 0 && !checkTokenValid(maybe_mint_id)){
-            _onlyTokenID[tokenInfo.digest][tokenInfo.attester][tokenInfo.programHash][publicInputHash][tokenInfo.ctype] = 0;
         }
 
         // Make sure the VC issued by the attester is not revoked yet
@@ -216,19 +230,15 @@ STORAGE
         uint256 id = _tokenIds.current();
 
         // check whether there exist a binded address on-chain, if yes, mint the SBT to the binded address
-        address realRecipient;
-        if (_bindingDB[tokenInfo.recipient] == address(0)) {
-             realRecipient = Tokens.getRecipient(tokenInfo);
-        } else {
-             realRecipient = _bindingDB[tokenInfo.recipient];
-             _bindedSBT[Tokens.getRecipient(tokenInfo)][realRecipient].push(id);
-        }
+        address realRecipient = _bindingDB[tokenInfo.recipient];
+        _bindedSBT[Tokens.getRecipient(tokenInfo)][realRecipient].push(id);
+
 
         Tokens.TokenOnChain memory tokenOnChainInfo = Tokens.fillTokenOnChain(tokenInfo, _time(), realRecipient);
 
         _mint(realRecipient, id);
         _tokenDB[id] = tokenOnChainInfo;
-        
+        _holderTokenHistoryDB[realRecipient].push(id);
         _tokenVerifier[id] = tokenInfo.verifier; 
         // Push the tokenID to the work of the verifier
         _verifierWorkDB[tokenInfo.verifier].push(id);
@@ -241,7 +251,7 @@ STORAGE
         // Add the tokenID to the digest collection, when revoke the digest, could burn all the tokenID related to that
         _digestConvertCollection[tokenOnChainInfo.attester][tokenOnChainInfo.digest].push(id);
 
-        emit MintSuccess(id, tokenOnChainInfo.programHash, tokenOnChainInfo.publicInput, tokenOnChainInfo.output, _time(), tokenOnChainInfo.expirationTimestamp, tokenOnChainInfo.attester, tokenInfo.recipient, realRecipient, tokenOnChainInfo.ctype, tokenOnChainInfo.sbtLink);
+        emit MintSuccess(id, tokenOnChainInfo.programHash,tokenOnChainInfo.digest, tokenOnChainInfo.publicInput, tokenOnChainInfo.output, _time(), tokenOnChainInfo.expirationTimestamp, tokenOnChainInfo.attester, tokenInfo.recipient, realRecipient, tokenOnChainInfo.ctype, tokenOnChainInfo.sbtLink);
     }
 
     /**
@@ -260,9 +270,12 @@ STORAGE
             if (_exists(revokeList[i])){
                 super._burn(revokeList[i]);
             }
+            bytes32 publicInputHash = keccak256(abi.encodePacked(_tokenDB[revokeList[i]].publicInput));
+            delete _onlyTokenID[_tokenDB[revokeList[i]].digest][_tokenDB[revokeList[i]].attester][_tokenDB[revokeList[i]].programHash][publicInputHash][_tokenDB[revokeList[i]].ctype];
+            delete _certainSbtDB[_tokenDB[revokeList[i]].recipient][_tokenDB[revokeList[i]].attester][_tokenDB[revokeList[i]].programHash][publicInputHash][_tokenDB[revokeList[i]].ctype];
             delete _tokenDB[revokeList[i]];
         }
-        emit RevokeSuccess(msg.sender, revokeList);
+        emit RevokeSuccess(msg.sender, digest, revokeList);
     }
 
     /**
@@ -276,32 +289,6 @@ STORAGE
         }
         if (Tokens.verifyBindingSignature(bindingAddr, bindedAddr, bindingSignature, bindedSignature) == true) {
             _bindingDB[bindingAddr] = bindedAddr;
-            uint256[] memory bindingAddrTokenList = _holderTokenHistoryDB[bindingAddr];
-            if (bindingAddrTokenList.length != 0){
-                for(uint i = 0; i < bindingAddrTokenList.length; i++){
-                    Tokens.TokenOnChain memory currentToken = _tokenDB[bindingAddrTokenList[i]];
-                    _burn(bindingAddrTokenList[i]);
-                    delete _tokenDB[bindingAddrTokenList[i]];
-                    
-                    _tokenIds.increment();
-                    uint256 id = _tokenIds.current();
-
-                    Tokens.TokenOnChain memory newToken = Tokens.changeRecipient(currentToken, bindedAddr);
-                    _tokenDB[id] = newToken;
-                    _verifierWorkDB[_tokenVerifier[bindingAddrTokenList[i]]].push(id);
-                    _tokenVerifier[id] = _tokenVerifier[bindingAddrTokenList[i]];
-
-                    bytes32 publicInputHash = keccak256(abi.encodePacked(newToken.publicInput));
-
-                    _onlyTokenID[newToken.digest][newToken.attester][newToken.programHash][publicInputHash][newToken.ctype] = id;
-                    _digestConvertCollection[newToken.attester][newToken.digest].push(id);
-
-                    delete _tokenVerifier[bindingAddrTokenList[i]];
-                    delete _certainSbtDB[currentToken.recipient][currentToken.attester][currentToken.programHash][publicInputHash][currentToken.ctype];
-
-                    emit BindingTransferTokenSuccess(id, currentToken.programHash, _time(), currentToken.expirationTimestamp, currentToken.attester, bindingAddr, bindedAddr, currentToken.ctype, currentToken.sbtLink);
-                }
-            }
             emit BindingSetSuccess(bindingAddr, bindedAddr);
         } else {
             revert BindingSignatureInvalid();
@@ -323,6 +310,9 @@ STORAGE
                 if (_exists(revokeList[i])){
                     super._burn(revokeList[i]);
                 } 
+                bytes32 publicInputHash = keccak256(abi.encodePacked(_tokenDB[revokeList[i]].publicInput));
+                delete _onlyTokenID[_tokenDB[revokeList[i]].digest][_tokenDB[revokeList[i]].attester][_tokenDB[revokeList[i]].programHash][publicInputHash][_tokenDB[revokeList[i]].ctype];
+                delete _certainSbtDB[_tokenDB[revokeList[i]].recipient][_tokenDB[revokeList[i]].attester][_tokenDB[revokeList[i]].programHash][publicInputHash][_tokenDB[revokeList[i]].ctype];
                 delete _tokenDB[revokeList[i]];
             }
 
@@ -372,7 +362,7 @@ STORAGE
         uint256 tokenId = _certainSbtDB[userAddr][attester][programHash][publicInputHash][ctype];
        
         if (!checkTokenValid(tokenId)){
-            revert TokenNotExist();
+            revert TokenNotValid();
         }
         
         return _tokenDB[tokenId];
@@ -424,7 +414,7 @@ STORAGE
 
     function contractURI() external pure returns (string memory) {
         string
-            memory collectionImage = "ar://7kij1nQzLRYAr81vDF3szWkQj-tzhwuw-QzVAUJwxPg";
+            memory collectionImage = "https://arweave.net/7kij1nQzLRYAr81vDF3szWkQj-tzhwuw-QzVAUJwxPg";
         string memory json = string.concat(
             '{"name": "zCloak SBT","description":"This is a zkSBT collection launched by zCloak Network which can be used to represent ones personal identity without revealing their confidential information","image":"',
             collectionImage,

@@ -46,7 +46,7 @@ library Tokens {
 
     bytes32 public constant MINT_TYPEHASH =
         keccak256(
-            "signature(address recipient,bytes32 ctype,bytes32 programHash,bytes32 digest,address verifier,address attester,uint64[] output,uint64 issuanceTimestamp,uint64 expirationTimestamp,bytes2 vcVersion,string sbtLink)"
+            "signature(address recipient,bytes32 ctype,bytes32 programHash,uint64[] publicInput,bytes32 digest,address verifier,address attester,uint64[] output,uint64 issuanceTimestamp,uint64 expirationTimestamp,bytes2 vcVersion,string sbtLink)"
         );
     struct Token {
         address recipient;
