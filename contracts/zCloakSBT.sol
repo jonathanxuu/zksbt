@@ -94,17 +94,6 @@ STORAGE
         bytes32 ctypeHash,
         string sbtLink
     );
-    event BindingTransferTokenSuccess(
-        uint256 indexed tokenID,
-        bytes32 programHash,
-        uint64 createdTime,
-        uint64 expiredTime,
-        address indexed attester,
-        address claimer,
-        address indexed recipient,
-        bytes32 ctypeHash,
-        string sbtLink
-    );
     event RevokeSuccess(
         address indexed attester,
         bytes32 indexed digestHash,
@@ -122,10 +111,18 @@ STORAGE
     event VerifierWhiteListDelete(address[] indexed verifiers);
     event VerifierInvalidToken(
         address indexed verifier,
-        uint256 indexed tokenID
+        uint256[] indexed tokenID
     );
     event UserBurnToken(address indexed user, uint256 indexed tokenID);
-    event UserUnBindBurn(address indexed user, uint256 indexed tokenID);
+    event UserUnBindBurn(address indexed user, uint256[] indexed tokenID);
+    event AssertionMethodAdd(
+        address indexed attester,
+        address indexed assertionMethod
+    );
+    event AssertionMethodRemove(
+        address indexed attester,
+        address indexed assertionMethod
+    );
 
     /*///////////////////////////////////////////////////////////////
  EIP-712 STORAGE
@@ -171,15 +168,34 @@ STORAGE
                 for (uint j = 0; j < _verifierWorkDB[modifiedVerifiers[i]].length; j++){
                    if (_exists(_verifierWorkDB[modifiedVerifiers[i]][j])){
                         super._burn(_verifierWorkDB[modifiedVerifiers[i]][j]);
-                        emit VerifierInvalidToken(modifiedVerifiers[i], _verifierWorkDB[modifiedVerifiers[i]][j]);
                         delete _tokenDB[_verifierWorkDB[modifiedVerifiers[i]][j]];
                     }    
                 }
+                emit VerifierInvalidToken(modifiedVerifiers[i], _verifierWorkDB[modifiedVerifiers[i]]);
                 _verifierWorkDB[modifiedVerifiers[i]] = new uint256[](0);
             } 
             emit VerifierWhiteListDelete(modifiedVerifiers);
 
         }
+    }
+
+    /**
+     * @notice Use to help attester to add/remove assertionMethod
+     */
+    //prettier-ignore
+    function modifyAttesterAssertionMethod(address attester, address assertionMethod, bool isAdd) public onlyOwner {
+        if (_assertionMethodMapping[attester] == address(0) && isAdd == true){
+            _assertionMethodMapping[attester] = assertionMethod;
+            emit AssertionMethodAdd(attester, assertionMethod);
+        } else if (_assertionMethodMapping[attester] == address(0) && isAdd == false){
+            revert NotSetKey();
+        } else if (_assertionMethodMapping[attester] != address(0) && isAdd == true){
+            revert AlreadySetKey();
+        } else if (_assertionMethodMapping[attester] != address(0) && isAdd == false){
+            emit AssertionMethodRemove(attester, _assertionMethodMapping[attester]);
+            _assertionMethodMapping[attester] = address(0);
+        }
+    
     }
 
     /**
@@ -315,10 +331,12 @@ STORAGE
                 delete _certainSbtDB[_tokenDB[revokeList[i]].recipient][_tokenDB[revokeList[i]].attester][_tokenDB[revokeList[i]].programHash][publicInputHash][_tokenDB[revokeList[i]].ctype];
                 delete _tokenDB[revokeList[i]];
             }
-
             // set it to default
             delete _bindingDB[bindingAddr];
             delete _bindedSBT[bindingAddr][bindedAddr];
+            if (revokeList.length != 0){
+                emit UserUnBindBurn(bindingAddr, revokeList);
+            }
             emit UnBindingSuccess(bindingAddr, bindedAddr);
         } else {
             revert UnBindingLimited();
@@ -334,6 +352,7 @@ STORAGE
             revert AlreadySetKey();
         }
         _assertionMethodMapping[msg.sender] = assertionMethod;
+        emit AssertionMethodAdd(msg.sender, assertionMethod);
     }
 
     /**
@@ -344,6 +363,7 @@ STORAGE
         if (_assertionMethodMapping[msg.sender] == address(0)) {
             revert NotSetKey();
         }
+        emit AssertionMethodRemove(msg.sender, _assertionMethodMapping[msg.sender]);
         _assertionMethodMapping[msg.sender] = address(0);
     }
 
@@ -392,24 +412,7 @@ STORAGE
     function tokenURI(uint256 id) public view override returns (string memory) {
         if (!_exists(id)) revert TokenNotExist();
         string memory sbtImage = _tokenDB[id].sbtLink;
-        // string memory json = string.concat(
-        //     '{"image":"',
-        //     sbtImage,
-        //     '"}'
-        // );
-        // todo: dertermine whether need's title and description for each SBT.
-        return string.concat('{"name": "zCloakSBT","image":"', sbtImage, '"}');
-    }
-
-    /**
-     * @dev Base URI for computing {tokenURI}. If set, the resulting URI for each
-     * token will be the concatenation of the `baseURI` and the `tokenId`. Empty
-     * by default, it can be overridden in child contracts.
-     */
-    function _baseURI(
-        uint256 tokenId
-    ) internal view virtual returns (string memory) {
-        return _tokenDB[tokenId].sbtLink;
+        return string.concat('{"name": "zk-SBT #', id.toString(),'","image":"', sbtImage, '"}');
     }
 
     function contractURI() external pure returns (string memory) {
@@ -455,8 +458,23 @@ STORAGE
             to == address(0x000000000000000000000000000000000000dEaD) ||
             to == address(0x0000000000000000000000000000000000000000)
         ) {
-            Tokens.TokenOnChain memory empty;
-            _tokenDB[firstTokenId] = empty;
+            if (msg.sender == _tokenDB[firstTokenId].recipient) {
+                emit UserBurnToken(msg.sender, firstTokenId);
+            }
+            bytes32 publicInputHash = keccak256(
+                abi.encodePacked(_tokenDB[firstTokenId].publicInput)
+            );
+            delete _onlyTokenID[_tokenDB[firstTokenId].digest][
+                _tokenDB[firstTokenId].attester
+            ][_tokenDB[firstTokenId].programHash][publicInputHash][
+                _tokenDB[firstTokenId].ctype
+            ];
+            delete _certainSbtDB[_tokenDB[firstTokenId].recipient][
+                _tokenDB[firstTokenId].attester
+            ][_tokenDB[firstTokenId].programHash][publicInputHash][
+                _tokenDB[firstTokenId].ctype
+            ];
+            delete _tokenDB[firstTokenId];
         }
         super._beforeTokenTransfer(from, to, firstTokenId, batchSize);
     }
