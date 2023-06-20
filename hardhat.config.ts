@@ -3,16 +3,25 @@ require("@nomicfoundation/hardhat-toolbox");
 require("dotenv").config();
 require("@nomiclabs/hardhat-etherscan");
 require("@nomiclabs/hardhat-ethers");
+require('hardhat-abi-exporter');
+
 const { ProxyAgent, setGlobalDispatcher } = require("undici");
 const proxyAgent = new ProxyAgent("http://127.0.0.1:7890");
 setGlobalDispatcher(proxyAgent);
 
-module.exports = {
+module.exports = {  abiExporter: {
+  path: './data/abi',
+  runOnCompile: true,
+  clear: true,
+  flat: true,
+  spacing: 2,
+  // format: "minimal",
+},
   etherscan: {
     apiKey: {
       optimisticGoerli: process.env.ETHSCAN_API_KEY,
       "base-goerli": process.env.BASEAPI,
-      linea: process.env.ETHSCAN_API_KEY2,
+      linea: process.env.ETHSCAN_API_KEY,
 
     },
     customChains: [
@@ -40,13 +49,14 @@ module.exports = {
     settings: {
       optimizer: {
         enabled: true,
-        runs: 200,
+        runs: 20,
       },
       viaIR: true,
     },
   },
   networks: {
-    linea: {
+    'linea': {
+      allowUnlimitedContractSize: true,
       url: `https://rpc.goerli.linea.build/`,
       accounts: [process.env.GOERLI_PRIVATE_KEY],
     },
@@ -71,6 +81,6 @@ module.exports = {
   },
 
   allowUnlimitedContractSize: true,
-  
+
 };
 

@@ -10,9 +10,14 @@ const main = async () => {
     const nftContractFactory = await hre.ethers.getContractFactory('zCloakSBT', {
         libraries: {
             Tokens: libTokensObj.address,
+            // Tokens: '0x06933096fCdB8c82BE3233ECe46e80bcc2105B7b'
+            //0x2e842f6e3fBf093981938F4E24892185bBDAd727
         }
     });
+    console.log("ok1")
     const nftContract = await nftContractFactory.deploy(["0xC2BADDbf6DCeDA9b68638a9de84063c1E0ee4350"]);
+    console.log("ok2")
+
     await nftContract.deployed();
     console.log("Contract deployed to:", nftContract.address);
   
