@@ -136,14 +136,9 @@ STORAGE
  STRUCTOR
  //////////////////////////////////////////////////////////////*/
 
-    constructor(
-        address[] memory _trustedVerifiers
-    ) ERC721("zCloak SBT", "zk-SBT") {
+    constructor() ERC721("zCloak SBT", "zk-SBT") {
         INITIAL_CHAIN_ID = block.chainid;
         INITIAL_DOMAIN_SEPARATOR = computeDomainSeparator();
-        for (uint i = 0; i < _trustedVerifiers.length; i++) {
-            _verifierWhitelist[_trustedVerifiers[i]] = true;
-        }
     }
 
     /*///////////////////////////////////////////////////////////////

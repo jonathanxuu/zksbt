@@ -1,28 +1,30 @@
 
 const main = async () => {
-    let libTokens;
-    let libTokensObj;
-    libTokens = await hre.ethers.getContractFactory("Tokens");
-    libTokensObj = await libTokens.deploy();
-    await libTokensObj.deployed();
-    console.log("Contract tokens deployed to:", libTokensObj.address);
+    // let libTokens;
+    // let libTokensObj;
+    // libTokens = await hre.ethers.getContractFactory("Tokens");
+    // libTokensObj = await libTokens.deploy();
+    // await libTokensObj.deployed();
+    // console.log("Contract tokens deployed to:", libTokensObj.address);
 
     const nftContractFactory = await hre.ethers.getContractFactory('zCloakSBT', {
         libraries: {
-            Tokens: libTokensObj.address,
-            // Tokens: '0x06933096fCdB8c82BE3233ECe46e80bcc2105B7b'
+            // Tokens: libTokensObj.address,
+            Tokens:'0xBd0AdBaEe8E3B5b375A40E2CE870e6af1E355e98' 
+            // '0x06933096fCdB8c82BE3233ECe46e80bcc2105B7b'
             //0x2e842f6e3fBf093981938F4E24892185bBDAd727
         }
     });
     console.log("ok1")
-    const nftContract = await nftContractFactory.deploy(["0xC2BADDbf6DCeDA9b68638a9de84063c1E0ee4350"]);
+    const nftContract = await nftContractFactory.deploy();
+    0xC2BADDbf6DCeDA9b68638a9de84063c1E0ee4350
     console.log("ok2")
 
-    await nftContract.deployed();
-    console.log("Contract deployed to:", nftContract.address);
+    // await nftContract.deployed();
+    // console.log("Contract deployed to:", nftContract.address);
   
-    let toggleOpen = await nftContract.toggleMinting();
-    await toggleOpen.wait()
+    // let toggleOpen = await nftContract.toggleMinting();
+    // await toggleOpen.wait()
 
     // // Call the function.
     // let txn = await nftContract.mint([

@@ -21,8 +21,9 @@ module.exports = {  abiExporter: {
     apiKey: {
       optimisticGoerli: process.env.ETHSCAN_API_KEY,
       "base-goerli": process.env.BASEAPI,
+      "base-mainnet": process.env.BASEMAINAPI,
       linea: process.env.ETHSCAN_API_KEY,
-
+      "wanghui": process.env.ETHSCAN_API_KEY
     },
     customChains: [
       {
@@ -40,8 +41,22 @@ module.exports = {  abiExporter: {
          apiURL: "https://api-goerli.basescan.org/api",
          browserURL: "https://goerli.basescan.org"
         }
-      }
-
+      },
+      { 
+        network: 'wanghui',
+        chainId: 5468810273,
+        urls: {
+          apiURL: 'http://3.101.131.66:4000/api',
+        }
+      },
+      {
+        network: "base-mainnet",
+        chainId: 8453,
+        urls: {
+         apiURL: "https://api.basescan.org/api",
+         browserURL: "https://basescan.org"
+        }
+      },
     ]
   },
   solidity: {
@@ -65,6 +80,18 @@ module.exports = {  abiExporter: {
       url: 'https://shy-alien-sailboat.base-goerli.discover.quiknode.pro/a3ec1f5083aba55ae5627e9266458017f9d3f29b/',
       chainId: 84531,
       live: true,
+      accounts: [process.env.GOERLI_PRIVATE_KEY],
+    },
+    'wanghui':{
+      allowUnlimitedContractSize: true,
+      url: 'http://3.101.131.66:8449/',
+      chainId: 5468810273,
+      live: true,
+      accounts: [process.env.GOERLI_PRIVATE_KEY],
+    },
+
+    'base-mainnet': {
+      url: 'https://developer-access-mainnet.base.org',
       accounts: [process.env.GOERLI_PRIVATE_KEY],
     },
     optimisticGoerli: {
