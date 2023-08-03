@@ -1,6 +1,12 @@
 [
   {
-    "inputs": [],
+    "inputs": [
+      {
+        "internalType": "address[]",
+        "name": "verifiers",
+        "type": "address[]"
+      }
+    ],
     "stateMutability": "nonpayable",
     "type": "constructor"
   },
@@ -35,7 +41,13 @@
     "type": "error"
   },
   {
-    "inputs": [],
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "digest",
+        "type": "bytes32"
+      }
+    ],
     "name": "DigestAlreadyRevoked",
     "type": "error"
   },
@@ -227,6 +239,12 @@
         "internalType": "uint64[]",
         "name": "publicInput",
         "type": "uint64[]"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "isPublicInputUsedForCheck",
+        "type": "bool"
       },
       {
         "indexed": false,
@@ -466,7 +484,7 @@
   },
   {
     "inputs": [],
-    "name": "DOMAIN_SEPARATOR",
+    "name": "DomainSeparator",
     "outputs": [
       {
         "internalType": "bytes32",
@@ -547,25 +565,6 @@
         "internalType": "address",
         "name": "",
         "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "bindingAddr",
-        "type": "address"
-      }
-    ],
-    "name": "checkBindingSBTDB",
-    "outputs": [
-      {
-        "internalType": "uint256[]",
-        "name": "",
-        "type": "uint256[]"
       }
     ],
     "stateMutability": "view",
@@ -711,6 +710,11 @@
             "type": "uint64[]"
           },
           {
+            "internalType": "bool",
+            "name": "isPublicInputUsedForCheck",
+            "type": "bool"
+          },
+          {
             "internalType": "bytes32",
             "name": "digest",
             "type": "bytes32"
@@ -811,6 +815,11 @@
             "type": "uint64[]"
           },
           {
+            "internalType": "bool",
+            "name": "isPublicInputUsedForCheck",
+            "type": "bool"
+          },
+          {
             "internalType": "bytes32",
             "name": "digest",
             "type": "bytes32"
@@ -898,25 +907,6 @@
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "verifier",
-        "type": "address"
-      }
-    ],
-    "name": "checkVerifierWorkDB",
-    "outputs": [
-      {
-        "internalType": "uint256[]",
-        "name": "",
-        "type": "uint256[]"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [],
     "name": "contractURI",
     "outputs": [
@@ -946,19 +936,6 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getBlankAddress",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "pure",
     "type": "function"
   },
   {
@@ -1008,6 +985,11 @@
             "internalType": "uint64[]",
             "name": "publicInput",
             "type": "uint64[]"
+          },
+          {
+            "internalType": "bool",
+            "name": "isPublicInputUsedForCheck",
+            "type": "bool"
           },
           {
             "internalType": "bytes32",
@@ -1186,9 +1168,9 @@
   {
     "inputs": [
       {
-        "internalType": "bytes32",
-        "name": "digest",
-        "type": "bytes32"
+        "internalType": "bytes32[]",
+        "name": "digestList",
+        "type": "bytes32[]"
       }
     ],
     "name": "revokeByDigest",

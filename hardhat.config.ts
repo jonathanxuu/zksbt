@@ -64,7 +64,7 @@ module.exports = {  abiExporter: {
     settings: {
       optimizer: {
         enabled: true,
-        runs: 20,
+        runs: 10,
       },
       viaIR: true,
     },

@@ -53,6 +53,7 @@ library Tokens {
         bytes32 ctype;
         bytes32 programHash;
         uint64[] publicInput;
+        bool isPublicInputUsedForCheck;
         bytes32 digest;
         address verifier;
         address attester;
@@ -69,6 +70,7 @@ library Tokens {
         bytes32 ctype;
         bytes32 programHash;
         uint64[] publicInput;
+        bool isPublicInputUsedForCheck;
         bytes32 digest;
         address attester;
         uint64[] output;
@@ -79,8 +81,11 @@ library Tokens {
         string sbtLink;
     }
 
+    struct SBTWithUnnecePublicInput {
+        uint64[] publicInput;
+        uint256 tokenID;
+    }
 
-    // todo: function sbt mint to a contract
 
     function fillTokenOnChain(
         Token memory token,
@@ -91,6 +96,7 @@ library Tokens {
         tokenOnchain.ctype = token.ctype;
         tokenOnchain.programHash = token.programHash;
         tokenOnchain.publicInput = token.publicInput;
+        tokenOnchain.isPublicInputUsedForCheck = token.isPublicInputUsedForCheck;
         tokenOnchain.digest = token.digest;
         tokenOnchain.attester = token.attester;
         tokenOnchain.output = token.output;
@@ -109,6 +115,7 @@ library Tokens {
         tokenOnchain.ctype = originTokenOnChain.ctype;
         tokenOnchain.programHash = originTokenOnChain.programHash;
         tokenOnchain.publicInput = originTokenOnChain.publicInput;
+        tokenOnchain.isPublicInputUsedForCheck = originTokenOnChain.isPublicInputUsedForCheck;
         tokenOnchain.digest = originTokenOnChain.digest;
         tokenOnchain.attester = originTokenOnChain.attester;
         tokenOnchain.output = originTokenOnChain.output;
