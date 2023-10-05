@@ -1,32 +1,42 @@
 
 const main = async () => {
-    // let libTokens;
-    // let libTokensObj;
-    // libTokens = await hre.ethers.getContractFactory("Tokens");
-    // libTokensObj = await libTokens.deploy();
-    // await libTokensObj.deployed();
-    // console.log("Contract tokens deployed to:", libTokensObj.address);
+    
+  
+  
+  // const precompile = await hre.ethers.getContractFactory('TestPre');
+  // const preContract = await precompile.deploy("0x000000000000000000000000000000000000006c");
+  // await preContract.deployed();
+  // console.log("Contract deployed to:", preContract.address);
 
-    const nftContractFactory = await hre.ethers.getContractFactory('zCloakSBT', {
-        libraries: {
-            // Tokens: libTokensObj.address,
-            Tokens:"0xf989500e1F241B38c0901Fd6d39D33eA57bAd5C5" 
+  
+  
+  let libTokens;
+    let libTokensObj;
+    libTokens = await hre.ethers.getContractFactory("Tokens");
+    libTokensObj = await libTokens.deploy();
+    await libTokensObj.deployed();
+    console.log("Contract tokens deployed to:", libTokensObj.address);
+
+    // const nftContractFactory = await hre.ethers.getContractFactory('zCloakSBT', {
+    //     libraries: {
+    //         Tokens: libTokensObj.address,
+            // Tokens:"0x9722225ab4b85497Ec5479519cC6AaB981e0b4f6" 
             // '0x06933096fCdB8c82BE3233ECe46e80bcc2105B7b'
             //0x2e842f6e3fBf093981938F4E24892185bBDAd727
-        }
-    });
-    console.log("ok1")
-    const nftContract = await nftContractFactory.deploy(["0xC2BADDbf6DCeDA9b68638a9de84063c1E0ee4350"]);
+        // }
+    // });
+    // console.log("ok1")
+    // const nftContract = await nftContractFactory.deploy(["0xC2BADDbf6DCeDA9b68638a9de84063c1E0ee4350"]);
     
-    console.log("ok2")
+    // console.log("ok2")
 
-    await nftContract.deployed();
-    console.log("Contract deployed to:", nftContract.address);
+    // await nftContract.deployed();
+    // console.log("Contract deployed to:", nftContract.address);
   
-    let toggleOpen = await nftContract.toggleMinting();
-    await toggleOpen.wait()
+    // let toggleOpen = await nftContract.toggleMinting();
+    // await toggleOpen.wait()
 
-    // // Call the function.
+    // Call the function.
     // let txn = await nftContract.mint([
     //         "0x05476EE9235335ADd2e50c09B2D16a3A2cC4ebEC",
     //         "0x9884edce63d4de703c4b3ebf23063929705b7139ce2eeb3b6631c2fa25deb74f",
@@ -42,7 +52,7 @@ const main = async () => {
     // ],"0x0001")
     // Wait for it to be mined.
     // await txn.wait()
-    console.log("toggle open #1")
+    // console.log("toggle open #1")
   
 
   };

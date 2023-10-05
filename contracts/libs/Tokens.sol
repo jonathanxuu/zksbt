@@ -7,6 +7,8 @@ library Tokens {
     // the version header of the eip191
     bytes25 constant EIP191_VERSION_E_HEADER = "Ethereum Signed Message:\n";
 
+    // Ethereum Signed Message:\nCredentialVersionedDigest0xabcd12345678  + signature  -> attester
+
     // the prefix of did, which is 'did::zk'
     bytes7 constant DID_ZK_PREFIX = bytes7("did:zk:");
 
@@ -46,7 +48,7 @@ library Tokens {
 
     bytes32 public constant MINT_TYPEHASH =
         keccak256(
-            "signature(address recipient,bytes32 ctype,bytes32 programHash,uint64[] publicInput,bytes32 digest,address verifier,address attester,uint64[] output,uint64 issuanceTimestamp,uint64 expirationTimestamp,bytes2 vcVersion,string sbtLink)"
+            "signature(address recipient,bytes32 ctype,bytes32 programHash,uint64[] publicInput,bool isPublicInputUsedForCheck,bytes32 digest,address verifier,address attester,uint64[] output,uint64 issuanceTimestamp,uint64 expirationTimestamp,bytes2 vcVersion,string sbtLink)"
         );
     struct Token {
         address recipient;
@@ -163,7 +165,7 @@ library Tokens {
         Token memory tokenDetail,
         bytes memory signature,
         bytes32 domain_separator
-    ) internal pure returns (bool) {
+    ) public pure returns (bool) {
         bytes32 structHash = keccak256(
             abi.encode(
                 MINT_TYPEHASH,
@@ -171,6 +173,7 @@ library Tokens {
                 tokenDetail.ctype,
                 tokenDetail.programHash,
                 keccak256(abi.encodePacked(tokenDetail.publicInput)),
+                tokenDetail.isPublicInputUsedForCheck,
                 tokenDetail.digest,
                 tokenDetail.verifier,
                 tokenDetail.attester,

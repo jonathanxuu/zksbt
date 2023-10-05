@@ -10,7 +10,6 @@ import {Tokens} from "./libs/Tokens.sol";
 
 error Soulbound();
 error MintDisabled();
-error InvalidSignature();
 error TokenNotExist();
 error MintInfoInvalid();
 error AlreadyMint();
@@ -457,8 +456,8 @@ contract zCloakSBT is ERC721Enumerable, Ownable, ReentrancyGuard {
     }
 
     /*///////////////////////////////////////////////////////////////
- TOKEN LOGIC
- //////////////////////////////////////////////////////////////*/
+    TOKEN LOGIC
+    //////////////////////////////////////////////////////////////*/
 
     /**
      * @notice SOULBOUND: Block transfers.

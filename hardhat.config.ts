@@ -19,11 +19,13 @@ module.exports = {  abiExporter: {
 },
   etherscan: {
     apiKey: {
+      "arbitrum-goerli": process.env.ARB_API_KEY2,
       optimisticGoerli: process.env.ETHSCAN_API_KEY,
       "base-goerli": process.env.BASEAPI,
       "base-mainnet": process.env.BASEMAINAPI,
       linea: process.env.ETHSCAN_API_KEY,
-      "wanghui": process.env.ETHSCAN_API_KEY
+      "wanghui": process.env.ETHSCAN_API_KEY,
+      arbitrumOne: process.env.ARB_API_MAIN
     },
     customChains: [
       {
@@ -40,6 +42,14 @@ module.exports = {  abiExporter: {
         urls: {
          apiURL: "https://api-goerli.basescan.org/api",
          browserURL: "https://goerli.basescan.org"
+        }
+      },
+      {
+        network: "arbitrum-goerli",
+        chainId: 421613,
+        urls: {
+          apiURL: "https://api-goerli.arbiscan.io/api",
+          browserURL: "https://api-goerli.arbiscan.io"
         }
       },
       { 
@@ -64,15 +74,26 @@ module.exports = {  abiExporter: {
     settings: {
       optimizer: {
         enabled: true,
-        runs: 10,
+        runs: 20,
       },
       viaIR: true,
     },
   },
   networks: {
+    arbitrumOne: {
+      url: 'https://arb1.arbitrum.io/rpc',
+      accounts: [process.env.GOERLI_PRIVATE_KEY],
+    },
     'linea': {
       allowUnlimitedContractSize: true,
       url: `https://rpc.goerli.linea.build/`,
+      accounts: [process.env.GOERLI_PRIVATE_KEY],
+    },
+    'arbitrum-goerli': {
+      allowUnlimitedContractSize: true,
+      chainId: 421613,
+      live: true,
+      url: 'https://arb-goerli.g.alchemy.com/v2/gqUGW2rRWKfTtf4j9qRnAoCl67ehpsao',
       accounts: [process.env.GOERLI_PRIVATE_KEY],
     },
     'base-goerli': {
@@ -85,6 +106,8 @@ module.exports = {  abiExporter: {
     'wanghui':{
       allowUnlimitedContractSize: true,
       url: 'http://3.101.131.66:8449/',
+
+    
       chainId: 5468810273,
       live: true,
       accounts: [process.env.GOERLI_PRIVATE_KEY],
