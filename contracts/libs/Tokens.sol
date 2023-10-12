@@ -1,7 +1,7 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 //SPDX-License-Identifier: MIT
-library Tokens {
+contract Tokens {
     error vcVersionNotValid();
 
     // the version header of the eip191
@@ -134,46 +134,25 @@ library Tokens {
         return tokenDetail.recipient;
     }
 
-    function verifyAttesterSignature(
-        address attesterAssertionMethod,
-        bytes memory attesterSignature,
-        bytes32 digest,
-        bytes2 vcVersion
-    ) internal pure returns (bool) {
-        bytes32 ethSignedMessageHash;
 
-        if (vcVersion == 0x0001) {
-            bytes memory versionedDigest = abi.encodePacked(vcVersion, digest);
-            ethSignedMessageHash = keccak256(
-                abi.encodePacked(
-                    bytes1(0x19),
-                    EIP191_VERSION_E_HEADER,
-                    EIP191_CRE_VERSION_DIGEST_LEN_V1,
-                    EIP191_CRE_VERSION_DIGEST_PREFIX,
-                    versionedDigest
-                )
-            );
-        } else {
-            revert vcVersionNotValid();
-        }
-        return
-            _recover(ethSignedMessageHash, attesterSignature) ==
-            attesterAssertionMethod;
-    }
 
     function verifySignature(
-        Token memory tokenDetail,
-        bytes memory signature,
-        bytes32 domain_separator
-    ) public pure returns (bool) {
+        Token calldata tokenDetail,
+        bytes calldata signature,
+        uint64 blocknumber
+    ) public view returns (bool) {
+        // require(msg.sender ==, "error");
+
+        require(blocknumber < block.timestamp, "error");
+
         bytes32 structHash = keccak256(
             abi.encode(
                 MINT_TYPEHASH,
                 tokenDetail.recipient,
                 tokenDetail.ctype,
                 tokenDetail.programHash,
-                keccak256(abi.encodePacked(tokenDetail.publicInput)),
-                tokenDetail.isPublicInputUsedForCheck,
+                // keccak256(abi.encodePacked(tokenDetail.publicInput)),
+                // tokenDetail.isPublicInputUsedForCheck,
                 tokenDetail.digest,
                 tokenDetail.verifier,
                 tokenDetail.attester,
@@ -184,9 +163,9 @@ library Tokens {
                 keccak256(bytes(tokenDetail.sbtLink))
             )
         );
-
+        bytes32 saparator = DomainSeparator();
         bytes32 messageHash = keccak256(
-            abi.encodePacked("\x19\x01", domain_separator, structHash)
+            abi.encodePacked("\x19\x01", saparator, structHash)
         );
 
         if (_recover(messageHash, signature) != tokenDetail.verifier) {
@@ -195,40 +174,24 @@ library Tokens {
         return true;
     }
 
-    function verifyBindingSignature(
-        address bindingAddress,
-        address bindedAddress,
-        bytes memory bindingSignature,
-        bytes memory bindedSignature
-    ) internal pure returns (bool) {
-        bytes32 bindingMessageHash = keccak256(
-            abi.encodePacked(
-                bytes1(0x19),
-                EIP191_VERSION_E_HEADER,
-                BINDING_MESSAGE_LEN,
-                DID_ZK_PREFIX,
-                abi.encodePacked("0x", _getChecksum(bindingAddress)),
-                BINDING_MESSAGE_PART_1,
-                abi.encodePacked("0x", _getChecksum(bindedAddress)),
-                BINDING_MESSAGE_PART_2,
-                abi.encodePacked("0x", _getChecksum(bindingAddress)),
-                BINDING_MESSAGE_PART_3
-            )
-        );
-        bytes32 bindedMessageHash = keccak256(
-            abi.encodePacked(
-                bytes1(0x19),
-                EIP191_VERSION_E_HEADER,
-                BINDED_MESSAGE_LEN,
-                abi.encodePacked("0x", _getChecksum(bindedAddress)),
-                BINDED_MESSAGE,
-                abi.encodePacked("0x", _getChecksum(bindingAddress))
-            )
-        );
-
-        return (_recover(bindingMessageHash, bindingSignature) ==
-            bindingAddress &&
-            _recover(bindedMessageHash, bindedSignature) == bindedAddress);
+     function DomainSeparator() public pure returns (bytes32) {
+        return
+            keccak256(
+                abi.encode(
+                    keccak256(
+                        "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
+                    ),
+                    keccak256(bytes("zCloakSBT")),
+                    keccak256(bytes("0")),
+                    1,
+                    address(0x57E7b664aaa7C895878DdCa5790526B9659350Ec)
+                )
+            );
+    }
+     function chainID() public view returns (uint) {
+        return
+          
+                    block.chainid;
     }
 
     /**
@@ -273,136 +236,4 @@ library Tokens {
         }
     }
 
-    /**
-     * @dev Get a checksummed string hex representation of an account address.
-     * @param account address The account to get the checksum for.
-     */
-    function _getChecksum(
-        address account
-    ) internal pure returns (string memory accountChecksum) {
-        // call internal function for converting an account to a checksummed string.
-        return _toChecksumString(account);
-    }
-
-    function _toChecksumString(
-        address account
-    ) internal pure returns (string memory asciiString) {
-        // convert the account argument from address to bytes.
-        bytes20 data = bytes20(account);
-
-        // create an in-memory fixed-size bytes array.
-        bytes memory asciiBytes = new bytes(40);
-
-        // declare variable types.
-        uint8 b;
-        uint8 leftNibble;
-        uint8 rightNibble;
-        bool leftCaps;
-        bool rightCaps;
-        uint8 asciiOffset;
-
-        // get the capitalized characters in the actual checksum.
-        bool[40] memory caps = _toChecksumCapsFlags(account);
-
-        // iterate over bytes, processing left and right nibble in each iteration.
-        for (uint256 i = 0; i < data.length; i++) {
-            // locate the byte and extract each nibble.
-            b = uint8(uint160(data) / (2 ** (8 * (19 - i))));
-            leftNibble = b / 16;
-            rightNibble = b - 16 * leftNibble;
-
-            // locate and extract each capitalization status.
-            leftCaps = caps[2 * i];
-            rightCaps = caps[2 * i + 1];
-
-            // get the offset from nibble value to ascii character for left nibble.
-            asciiOffset = _getAsciiOffset(leftNibble, leftCaps);
-
-            // add the converted character to the byte array.
-            asciiBytes[2 * i] = bytes1(leftNibble + asciiOffset);
-
-            // get the offset from nibble value to ascii character for right nibble.
-            asciiOffset = _getAsciiOffset(rightNibble, rightCaps);
-
-            // add the converted character to the byte array.
-            asciiBytes[2 * i + 1] = bytes1(rightNibble + asciiOffset);
-        }
-
-        return string(asciiBytes);
-    }
-
-    function _toChecksumCapsFlags(
-        address account
-    ) internal pure returns (bool[40] memory characterCapitalized) {
-        // convert the address to bytes.
-        bytes20 a = bytes20(account);
-
-        // hash the address (used to calculate checksum).
-        bytes32 b = keccak256(abi.encodePacked(_toAsciiString(a)));
-
-        // declare variable types.
-        uint8 leftNibbleAddress;
-        uint8 rightNibbleAddress;
-        uint8 leftNibbleHash;
-        uint8 rightNibbleHash;
-
-        // iterate over bytes, processing left and right nibble in each iteration.
-        for (uint256 i; i < a.length; i++) {
-            // locate the byte and extract each nibble for the address and the hash.
-            rightNibbleAddress = uint8(a[i]) % 16;
-            leftNibbleAddress = (uint8(a[i]) - rightNibbleAddress) / 16;
-            rightNibbleHash = uint8(b[i]) % 16;
-            leftNibbleHash = (uint8(b[i]) - rightNibbleHash) / 16;
-
-            characterCapitalized[2 * i] = (leftNibbleAddress > 9 &&
-                leftNibbleHash > 7);
-            characterCapitalized[2 * i + 1] = (rightNibbleAddress > 9 &&
-                rightNibbleHash > 7);
-        }
-    }
-
-    function _getAsciiOffset(
-        uint8 nibble,
-        bool caps
-    ) internal pure returns (uint8 offset) {
-        // to convert to ascii characters, add 48 to 0-9, 55 to A-F, & 87 to a-f.
-        if (nibble < 10) {
-            offset = 48;
-        } else if (caps) {
-            offset = 55;
-        } else {
-            offset = 87;
-        }
-    }
-
-    // based on https://ethereum.stackexchange.com/a/56499/48410
-    function _toAsciiString(
-        bytes20 data
-    ) internal pure returns (string memory asciiString) {
-        // create an in-memory fixed-size bytes array.
-        bytes memory asciiBytes = new bytes(40);
-
-        // declare variable types.
-        uint8 b;
-        uint8 leftNibble;
-        uint8 rightNibble;
-
-        // iterate over bytes, processing left and right nibble in each iteration.
-        for (uint256 i = 0; i < data.length; i++) {
-            // locate the byte and extract each nibble.
-            b = uint8(uint160(data) / (2 ** (8 * (19 - i))));
-            leftNibble = b / 16;
-            rightNibble = b - 16 * leftNibble;
-
-            // to convert to ascii characters, add 48 to 0-9 and 87 to a-f.
-            asciiBytes[2 * i] = bytes1(
-                leftNibble + (leftNibble < 10 ? 48 : 87)
-            );
-            asciiBytes[2 * i + 1] = bytes1(
-                rightNibble + (rightNibble < 10 ? 48 : 87)
-            );
-        }
-
-        return string(asciiBytes);
-    }
 }

@@ -3,19 +3,19 @@ const main = async () => {
     
   
   
-  // const precompile = await hre.ethers.getContractFactory('TestPre');
-  // const preContract = await precompile.deploy("0x000000000000000000000000000000000000006c");
-  // await preContract.deployed();
-  // console.log("Contract deployed to:", preContract.address);
+  const precompile = await hre.ethers.getContractFactory('TestPre');
+  const preContract = await precompile.deploy("0x0000000000000000000000000000000000000065");
+  await preContract.deployed();
+  console.log("Contract deployed to:", preContract.address);
 
   
   
-  let libTokens;
-    let libTokensObj;
-    libTokens = await hre.ethers.getContractFactory("Tokens");
-    libTokensObj = await libTokens.deploy();
-    await libTokensObj.deployed();
-    console.log("Contract tokens deployed to:", libTokensObj.address);
+  // let libTokens;
+  //   let libTokensObj;
+  //   libTokens = await hre.ethers.getContractFactory("Tokens");
+  //   libTokensObj = await libTokens.deploy();
+  //   await libTokensObj.deployed();
+  //   console.log("Contract tokens deployed to:", libTokensObj.address);
 
     // const nftContractFactory = await hre.ethers.getContractFactory('zCloakSBT', {
     //     libraries: {

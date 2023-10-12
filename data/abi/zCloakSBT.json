@@ -12,98 +12,12 @@
   },
   {
     "inputs": [],
-    "name": "AlreadyMint",
-    "type": "error"
-  },
-  {
-    "inputs": [],
     "name": "AlreadySetKey",
     "type": "error"
   },
   {
     "inputs": [],
-    "name": "AttesterSignatureInvalid",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "BindingAlreadyOccupied",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "BindingNotExist",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "BindingSignatureInvalid",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "digest",
-        "type": "bytes32"
-      }
-    ],
-    "name": "DigestAlreadyRevoked",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "MintDisabled",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "MintInfoInvalid",
-    "type": "error"
-  },
-  {
-    "inputs": [],
     "name": "NotSetKey",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "OnChainRecipientNotSet",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "Soulbound",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "TokenNotExist",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "TokenNotValid",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "UnBindingLimited",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "VCAlreadyExpired",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "VerifierNotInWhitelist",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "vcVersionNotValid",
     "type": "error"
   },
   {
@@ -470,32 +384,6 @@
     "type": "event"
   },
   {
-    "inputs": [],
-    "name": "CHAIN_ID",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "DomainSeparator",
-    "outputs": [
-      {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
         "internalType": "address",
@@ -530,393 +418,6 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "addressToCheck",
-        "type": "address"
-      }
-    ],
-    "name": "checkAssertionMethod",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "bindingAddr",
-        "type": "address"
-      }
-    ],
-    "name": "checkBindingDB",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "attester",
-        "type": "address"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "digest",
-        "type": "bytes32"
-      }
-    ],
-    "name": "checkDigestConvertCollection",
-    "outputs": [
-      {
-        "internalType": "uint256[]",
-        "name": "",
-        "type": "uint256[]"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "digest",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "address",
-        "name": "attester",
-        "type": "address"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "programHash",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "uint64[]",
-        "name": "publicInput",
-        "type": "uint64[]"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "ctype",
-        "type": "bytes32"
-      }
-    ],
-    "name": "checkOnlyTokenID",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "attester",
-        "type": "address"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "digest",
-        "type": "bytes32"
-      }
-    ],
-    "name": "checkRevokeDB",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "userAddr",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "attester",
-        "type": "address"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "programHash",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "uint64[]",
-        "name": "publicInput",
-        "type": "uint64[]"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "ctype",
-        "type": "bytes32"
-      }
-    ],
-    "name": "checkSBTClassValid",
-    "outputs": [
-      {
-        "components": [
-          {
-            "internalType": "address",
-            "name": "recipient",
-            "type": "address"
-          },
-          {
-            "internalType": "bytes32",
-            "name": "ctype",
-            "type": "bytes32"
-          },
-          {
-            "internalType": "bytes32",
-            "name": "programHash",
-            "type": "bytes32"
-          },
-          {
-            "internalType": "uint64[]",
-            "name": "publicInput",
-            "type": "uint64[]"
-          },
-          {
-            "internalType": "bool",
-            "name": "isPublicInputUsedForCheck",
-            "type": "bool"
-          },
-          {
-            "internalType": "bytes32",
-            "name": "digest",
-            "type": "bytes32"
-          },
-          {
-            "internalType": "address",
-            "name": "attester",
-            "type": "address"
-          },
-          {
-            "internalType": "uint64[]",
-            "name": "output",
-            "type": "uint64[]"
-          },
-          {
-            "internalType": "uint64",
-            "name": "mintTimestamp",
-            "type": "uint64"
-          },
-          {
-            "internalType": "uint64",
-            "name": "issuanceTimestamp",
-            "type": "uint64"
-          },
-          {
-            "internalType": "uint64",
-            "name": "expirationTimestamp",
-            "type": "uint64"
-          },
-          {
-            "internalType": "bytes2",
-            "name": "vcVersion",
-            "type": "bytes2"
-          },
-          {
-            "internalType": "string",
-            "name": "sbtLink",
-            "type": "string"
-          }
-        ],
-        "internalType": "struct Tokens.TokenOnChain",
-        "name": "",
-        "type": "tuple"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "tokenID",
-        "type": "uint256"
-      }
-    ],
-    "name": "checkTokenExist",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "tokenID",
-        "type": "uint256"
-      }
-    ],
-    "name": "checkTokenInfo",
-    "outputs": [
-      {
-        "components": [
-          {
-            "internalType": "address",
-            "name": "recipient",
-            "type": "address"
-          },
-          {
-            "internalType": "bytes32",
-            "name": "ctype",
-            "type": "bytes32"
-          },
-          {
-            "internalType": "bytes32",
-            "name": "programHash",
-            "type": "bytes32"
-          },
-          {
-            "internalType": "uint64[]",
-            "name": "publicInput",
-            "type": "uint64[]"
-          },
-          {
-            "internalType": "bool",
-            "name": "isPublicInputUsedForCheck",
-            "type": "bool"
-          },
-          {
-            "internalType": "bytes32",
-            "name": "digest",
-            "type": "bytes32"
-          },
-          {
-            "internalType": "address",
-            "name": "attester",
-            "type": "address"
-          },
-          {
-            "internalType": "uint64[]",
-            "name": "output",
-            "type": "uint64[]"
-          },
-          {
-            "internalType": "uint64",
-            "name": "mintTimestamp",
-            "type": "uint64"
-          },
-          {
-            "internalType": "uint64",
-            "name": "issuanceTimestamp",
-            "type": "uint64"
-          },
-          {
-            "internalType": "uint64",
-            "name": "expirationTimestamp",
-            "type": "uint64"
-          },
-          {
-            "internalType": "bytes2",
-            "name": "vcVersion",
-            "type": "bytes2"
-          },
-          {
-            "internalType": "string",
-            "name": "sbtLink",
-            "type": "string"
-          }
-        ],
-        "internalType": "struct Tokens.TokenOnChain",
-        "name": "",
-        "type": "tuple"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "id",
-        "type": "uint256"
-      }
-    ],
-    "name": "checkTokenValid",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "verifier",
-        "type": "address"
-      }
-    ],
-    "name": "checkVerifierWhitelist",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "contractURI",
-    "outputs": [
-      {
-        "internalType": "string",
-        "name": "",
-        "type": "string"
-      }
-    ],
-    "stateMutability": "pure",
     "type": "function"
   },
   {
@@ -960,96 +461,6 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "components": [
-          {
-            "internalType": "address",
-            "name": "recipient",
-            "type": "address"
-          },
-          {
-            "internalType": "bytes32",
-            "name": "ctype",
-            "type": "bytes32"
-          },
-          {
-            "internalType": "bytes32",
-            "name": "programHash",
-            "type": "bytes32"
-          },
-          {
-            "internalType": "uint64[]",
-            "name": "publicInput",
-            "type": "uint64[]"
-          },
-          {
-            "internalType": "bool",
-            "name": "isPublicInputUsedForCheck",
-            "type": "bool"
-          },
-          {
-            "internalType": "bytes32",
-            "name": "digest",
-            "type": "bytes32"
-          },
-          {
-            "internalType": "address",
-            "name": "verifier",
-            "type": "address"
-          },
-          {
-            "internalType": "address",
-            "name": "attester",
-            "type": "address"
-          },
-          {
-            "internalType": "bytes",
-            "name": "attesterSignature",
-            "type": "bytes"
-          },
-          {
-            "internalType": "uint64[]",
-            "name": "output",
-            "type": "uint64[]"
-          },
-          {
-            "internalType": "uint64",
-            "name": "issuanceTimestamp",
-            "type": "uint64"
-          },
-          {
-            "internalType": "uint64",
-            "name": "expirationTimestamp",
-            "type": "uint64"
-          },
-          {
-            "internalType": "bytes2",
-            "name": "vcVersion",
-            "type": "bytes2"
-          },
-          {
-            "internalType": "string",
-            "name": "sbtLink",
-            "type": "string"
-          }
-        ],
-        "internalType": "struct Tokens.Token",
-        "name": "tokenInfo",
-        "type": "tuple"
-      },
-      {
-        "internalType": "bytes",
-        "name": "verifierSignature",
-        "type": "bytes"
-      }
-    ],
-    "name": "mint",
-    "outputs": [],
-    "stateMutability": "payable",
     "type": "function"
   },
   {
@@ -1153,27 +564,7 @@
   },
   {
     "inputs": [],
-    "name": "removeAssertionMethod",
-    "outputs": [],
-    "stateMutability": "payable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
     "name": "renounceOwnership",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32[]",
-        "name": "digestList",
-        "type": "bytes32[]"
-      }
-    ],
-    "name": "revokeByDigest",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -1238,54 +629,13 @@
       },
       {
         "internalType": "bool",
-        "name": "_approved",
+        "name": "approved",
         "type": "bool"
       }
     ],
     "name": "setApprovalForAll",
     "outputs": [],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "assertionMethod",
-        "type": "address"
-      }
-    ],
-    "name": "setAssertionMethod",
-    "outputs": [],
-    "stateMutability": "payable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "bindingAddr",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "bindedAddr",
-        "type": "address"
-      },
-      {
-        "internalType": "bytes",
-        "name": "bindingSignature",
-        "type": "bytes"
-      },
-      {
-        "internalType": "bytes",
-        "name": "bindedSignature",
-        "type": "bytes"
-      }
-    ],
-    "name": "setBinding",
-    "outputs": [],
-    "stateMutability": "payable",
     "type": "function"
   },
   {
@@ -1318,13 +668,6 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "toggleMinting",
-    "outputs": [],
-    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -1374,7 +717,7 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "id",
+        "name": "tokenId",
         "type": "uint256"
       }
     ],
@@ -1436,24 +779,6 @@
     "name": "transferOwnership",
     "outputs": [],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "bindingAddr",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "bindedAddr",
-        "type": "address"
-      }
-    ],
-    "name": "unBinding",
-    "outputs": [],
-    "stateMutability": "payable",
     "type": "function"
   }
 ]

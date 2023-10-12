@@ -25,6 +25,7 @@ module.exports = {  abiExporter: {
       "base-mainnet": process.env.BASEMAINAPI,
       linea: process.env.ETHSCAN_API_KEY,
       "wanghui": process.env.ETHSCAN_API_KEY,
+      "wanghuil2": process.env.ETHSCAN_API_KEY,
       arbitrumOne: process.env.ARB_API_MAIN
     },
     customChains: [
@@ -57,6 +58,13 @@ module.exports = {  abiExporter: {
         chainId: 5468810273,
         urls: {
           apiURL: 'http://3.101.131.66:4000/api',
+        }
+      },
+      { 
+        network: 'wanghuil2',
+        chainId: 412346,
+        urls: {
+          apiURL: 'http://54.184.214.151:4000/api',
         }
       },
       {
@@ -109,6 +117,15 @@ module.exports = {  abiExporter: {
 
     
       chainId: 5468810273,
+      live: true,
+      accounts: [process.env.GOERLI_PRIVATE_KEY],
+    },
+    'wanghuil2':{
+      allowUnlimitedContractSize: true,
+      url: 'http://54.184.214.151:8547/',
+
+    
+      chainId: 412346,
       live: true,
       accounts: [process.env.GOERLI_PRIVATE_KEY],
     },

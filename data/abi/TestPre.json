@@ -11,34 +11,20 @@
     "type": "constructor"
   },
   {
-    "inputs": [],
-    "name": "get",
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "item_1",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "item_2",
+        "type": "uint256"
+      }
+    ],
+    "name": "add",
     "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      },
       {
         "internalType": "uint256",
         "name": "",

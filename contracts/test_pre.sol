@@ -2,30 +2,15 @@
 
 pragma solidity >=0.8.0 <0.9.0;
 
+interface ArbInfo {
+    /// @notice Retrieves an account's balance
+    function getBalance2(address account) external view returns (uint256);
+    function add(uint256 item_1, uint256 item_2) external view returns (uint256);
 
-interface ArbGasInfo {
-    /// @notice Get gas prices. Uses the caller's preferred aggregator, or the default if the caller doesn't have a preferred one.
-    /// @return return gas prices in wei
-    ///        (
-    ///            per L2 tx,
-    ///            per L1 calldata byte
-    ///            per storage allocation,
-    ///            per ArbGas base,
-    ///            per ArbGas congestion,
-    ///            per ArbGas total
-    ///        )
-    function getPricesInWei()
-        external
-        view
-        returns (
-            uint256,
-            uint256,
-            uint256,
-            uint256,
-            uint256,
-            uint256
-        );
+    /// @notice Retrieves a contract's deployed code
+    function getCode(address account) external view returns (bytes memory);
 }
+
 
 contract TestPre {
 
@@ -44,16 +29,21 @@ contract TestPre {
       proxyContract =  _contractAddr;
     }
 
-    function get() public view returns (
-            uint256,
-            uint256,
-            uint256,
-            uint256,
-            uint256,
-            uint256
-        ) {
+    // function get() public view returns (
+    //         uint256,
+    //         uint256,
+    //         uint256,
+    //         uint256,
+    //         uint256,
+    //         uint256
+    //     ) {
 
-        return  ArbGasInfo(proxyContract).getPricesInWei(
-                );
-        }
+    //     return  ArbGasInfo(proxyContract).getPricesInWei(
+    //             );
+    //     }
+    function add(uint256 item_1, uint256 item_2) public view returns (uint256){
+         return  ArbInfo(proxyContract).add(item_1, item_2);
+    }
+
+    
 }
